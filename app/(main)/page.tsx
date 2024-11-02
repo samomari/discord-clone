@@ -15,8 +15,6 @@ export default function Page() {
   };
   return (
     <div>
-      <UserButton />
-      <ModeToggle />
       <button onClick={openModal} className="btn-primary">
         Create a server
       </button>
