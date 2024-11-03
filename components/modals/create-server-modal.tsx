@@ -21,20 +21,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { FileUpload } from "../file-upload";
+import { useModal } from "@/hooks/use-modal-store";
 
 const formSchema = z.object({
   name: z.string().min(1, "Server name is required"),
   imageUrl: z.string().min(1,"Server image is required"),
 });
 
-export default function InitialModal({ onClose }) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  },[]);
+export const CreateServerModal = () => {
+  const { isOpen, onClose, type } = useModal();
+  const isModalOpen = isOpen && type === "createServer";
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -50,17 +47,20 @@ export default function InitialModal({ onClose }) {
     console.log(values);
   }
 
-  if(!isMounted) return null;
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  }
   
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Customize your server
           </DialogTitle>
           <DialogDescription className="text-center text-zinc-500">
-            Give your server a personality with a name and an image. Yu can always change it later
+            Give your server a personality with a name and an image. You can always change it later
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -73,11 +73,13 @@ export default function InitialModal({ onClose }) {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
+                        {/*
                         <FileUpload 
                           endpoint="serverImage"
                           value={field.value}
                           onChange={field.onChange}
                         />
+                        */}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
