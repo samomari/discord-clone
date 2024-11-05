@@ -20,10 +20,6 @@ export const server = pgTable('servers', {
     .references(() => profile.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
-}, (table) => {
-  return {
-    profileIdx: index('server_profile_idx').on(table.profileId),
-  }
 });
 
 export const MemberRoleEnum = pgEnum('member_role', [
@@ -45,11 +41,6 @@ export const member = pgTable('members', {
     .references(() => server.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
-}, (table) => {
-  return {
-    profileIdx: index('member_profile_idx').on(table.profileId),
-    serverIdx: index('member_server_idx').on(table.serverId),
-  }
 });
 
 export const ChannelTypeEnum = pgEnum('channel_type', [
@@ -71,11 +62,6 @@ export const channel = pgTable('channels', {
     .references(() => server.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
-}, (table) => {
-  return {
-    profileIdx: index('channel_profile_idx').on(table.profileId),
-    serverIdx: index('channel_server_idx').on(table.serverId),
-  }
 });
 
 
