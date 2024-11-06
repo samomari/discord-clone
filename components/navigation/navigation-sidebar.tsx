@@ -4,26 +4,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationItem } from "./navigation-item";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
+import { currentProfile } from "@/lib/current-profile";
+import { redirect } from "next/navigation";
+import { db } from "@/db/db";
+import { server, member } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
-export const NavigationSidebar = async () => {
+export async function NavigationSidebar () {
+  const profile = await currentProfile();
 
-  const servers = [
-    { id: "1", 
-      name: "Server 1", 
-      imageUrl: "https://i.pravatar.cc/301" },
-    { id: "2", 
-      name: "Server 2", 
-      imageUrl: "https://i.pravatar.cc/302" },
-    { id: "3", 
-      name: "Server 3", 
-      imageUrl: "https://i.pravatar.cc/303" },
-    { id: "4", 
-      name: "Server 4", 
-      imageUrl: "https://i.pravatar.cc/304" },
-    { id: "5", 
-      name: "Server 5", 
-      imageUrl: "https://i.pravatar.cc/305" }, 
-  ]
+  if (!profile) {
+    return redirect("/");
+  }
+
+  const servers = await db
+    .select()
+    .from(server)
+    .innerJoin(member, eq(member.serverId, server.id))
+    .where(eq(member.profileId, profile.id));
+
+  const simplifiedServers = servers.map(s => s.servers);
 
   return (
     <div
@@ -36,8 +36,8 @@ export const NavigationSidebar = async () => {
         rounded-md w-10 mx-auto"
       />
       <ScrollArea className="flex-1 w-full">
-
-        {servers.map((server) => (
+    
+        {simplifiedServers.map((server) => (
           <div key={server.id} className="mb-4">
             <NavigationItem 
              id={server.id} 

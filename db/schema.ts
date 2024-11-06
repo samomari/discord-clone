@@ -7,7 +7,7 @@ export const profile = pgTable('profiles', {
   imageUrl: text("imageUrl").notNull(),
   email: text('email').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const server = pgTable('servers', {
@@ -19,7 +19,7 @@ export const server = pgTable('servers', {
     .notNull()
     .references(() => profile.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const MemberRoleEnum = pgEnum('member_role', [
@@ -40,7 +40,7 @@ export const member = pgTable('members', {
     .notNull()
     .references(() => server.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const ChannelTypeEnum = pgEnum('channel_type', [
@@ -61,7 +61,7 @@ export const channel = pgTable('channels', {
     .notNull()
     .references(() => server.id, {onDelete: 'cascade'}),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').notNull().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 
