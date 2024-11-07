@@ -28,6 +28,9 @@ export const MemberRoleEnum = pgEnum('member_role', [
   'GUEST',
 ]);
 
+export type MemberRole = 'ADMIN' | 'MODERATOR' | 'GUEST';
+
+
 export const member = pgTable('members', {
   id: uuid('id').primaryKey().defaultRandom(),
   role: MemberRoleEnum('role')
