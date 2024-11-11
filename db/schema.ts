@@ -1,4 +1,4 @@
-import { varchar, index, pgTable, text, timestamp, uuid, pgEnum } from 'drizzle-orm/pg-core';
+import { varchar, pgTable, text, timestamp, uuid, pgEnum } from 'drizzle-orm/pg-core';
 
 export const profile = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -50,6 +50,11 @@ export const ChannelTypeEnum = pgEnum('channel_type', [
   'TEXT',
   'VOICE',
 ]);
+
+export enum ChannelType {
+  TEXT = 'TEXT',
+  VOICE = 'VOICE'
+}
 
 export const channel = pgTable('channels', {
   id: uuid('id').primaryKey().defaultRandom(),
