@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { SelectServer } from "@/db/schema"
 
 export type ModalType = 'createServer' | 'invite' | 'editServer' |
-'members' | 'createChannel' | 'leaveServer';
+'members' | 'createChannel' | 'leaveServer' | 'deleteServer';
 
 interface ModalData {
   server?: SelectServer;
