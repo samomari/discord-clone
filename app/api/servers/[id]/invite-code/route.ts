@@ -10,13 +10,14 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     const profile = await currentProfile();
 
     if (!profile) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!params.id) {
+    if (!id) {
       return new NextResponse("Server ID Missing", { status: 400 });
     }
 
@@ -25,7 +26,7 @@ export async function PATCH(
       .set({ inviteCode: uuidv4() })
       .where(
         and(
-          eq(server.id, params.id),
+          eq(server.id, id),
           eq(server.profileId, profile.id)
         )
       )

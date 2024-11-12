@@ -9,6 +9,7 @@ export async function PATCH (
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     const profile = await currentProfile();
     const { name, imageUrl } = await req.json();
 
@@ -21,7 +22,7 @@ export async function PATCH (
       .set({ name: name, imageUrl: imageUrl })
       .where(
         and(
-          eq(server.id, params.id),
+          eq(server.id, id),
           eq(server.profileId, profile.id)
         ) 
       )

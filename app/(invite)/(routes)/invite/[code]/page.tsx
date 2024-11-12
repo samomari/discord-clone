@@ -13,20 +13,21 @@ interface InviteCodePageProps {
 const Page = async ({
   params
 }: InviteCodePageProps) => {
+  const { code } = await params;
   const profile = await currentProfile();
 
   if (!profile) {
     return redirect("/sign-in");
   }
 
-  if (!params.code) {
+  if (!code) {
     return redirect("/");
   }
 
   const serverData = await db
     .select()
     .from(server)
-    .where(eq(server.inviteCode, params.code))
+    .where(eq(server.inviteCode, code))
     .limit(1)
     .execute();
 
