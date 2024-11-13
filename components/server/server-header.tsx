@@ -1,7 +1,7 @@
 'use client';
 
 import { ServerWithMembersWithProfiles } from "@/types";
-import { MemberRole } from "@/db/schema";
+import { MemberRole } from "@/types";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 

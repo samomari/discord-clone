@@ -4,10 +4,14 @@ import { db } from "@/db/db";
 import { server, member, channel, profile } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { ServerHeader } from "./server-header";
-import { ServerWithMembersWithProfiles } from "@/types";
+import { ChannelType, ServerWithMembersWithProfiles } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ServerSearch } from "./server-search";
 import { Hash, Mic, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ServerSection } from "./server-section";
+import { ServerChannel } from "./server-channel";
+import { ServerMember } from "./server-member";
 
 interface ServerSidebarProps {
   serverId: string;
@@ -69,10 +73,10 @@ export const ServerSidebar = async ({
   const channelsArray = Array.from(channelsMap.values());
 
   const textChannels = channelsArray.filter(
-    (channel) => channel.type === "TEXT");
+    (channel) => channel.type === ChannelType.TEXT);
   
   const voiceChannels = channelsArray.filter(
-    (channel) => channel.type === "VOICE");
+    (channel) => channel.type === ChannelType.VOICE);
 
   const filteredMembers = membersArray.filter(
     (member) => member.profileId !== curProfile.id);
@@ -132,6 +136,67 @@ export const ServerSidebar = async ({
             ]}
           />
         </div>
+        <Separator className="bg-zinc-200 dark:bg-zinc-700 rounded-md my-2"/>
+        {!!textChannels?.length && (
+          <div className="mb-2">
+            <ServerSection 
+              sectionType="channels"
+              channelType={ChannelType.TEXT}
+              role={role}
+              label="Text Channels"
+            />
+            <div className="space-y-[2px]">
+              {textChannels.map((channel) => (
+                <ServerChannel 
+                  key={channel.id}
+                  channel={channel}
+                  role={role}
+                  server={reshapedServerItem}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {!!voiceChannels?.length && (
+          <div className="mb-2">
+            <ServerSection 
+              sectionType="channels"
+              channelType={ChannelType.VOICE}
+              role={role}
+              label="Voice Channels"
+            />
+            <div className="space-y-[2px]">
+              {voiceChannels.map((channel) => (
+                <ServerChannel 
+                  key={channel.id}
+                  channel={channel}
+                  role={role}
+                  server={reshapedServerItem}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {/* MEMBERS */}
+        {!!filteredMembers?.length && (
+          <div className="mb-2">
+            <ServerSection 
+              sectionType="members"
+              role={role}
+              label="Members"
+              server={reshapedServerItem}
+            />
+            <div className="space-y-[2px]">
+              {filteredMembers.map((member) => (
+                <ServerMember 
+                  key={member.id}
+                  member={member}
+                  server={reshapedServerItem}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </ScrollArea>
     </div>
   );

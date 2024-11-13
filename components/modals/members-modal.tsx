@@ -3,7 +3,7 @@
 import qs from "query-string";
 import { useState } from "react";
 import { useModal } from "@/hooks/use-modal-store";
-import { MemberRole } from "@/db/schema";
+import { MemberRole } from "@/types";
 import { ServerWithMembersWithProfiles } from "@/types";
 import {
   Dialog, 
