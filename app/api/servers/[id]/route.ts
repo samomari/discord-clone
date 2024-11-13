@@ -1,8 +1,9 @@
 import { currentProfile } from "@/lib/current-profile";
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
-import { server } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { member, server } from "@/db/schema";
+import { eq, and, or } from "drizzle-orm";
+import { MemberRole } from "@/types";
 
 export async function DELETE (
   req: Request,
@@ -13,6 +14,26 @@ export async function DELETE (
     const profile = await currentProfile();
 
     if (!profile) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const memberRecord = await db
+      .select()
+      .from(member)
+      .where(
+        and(
+          eq(member.serverId, id),
+          eq(member.profileId, profile.id),
+          or(
+            eq(member.role, MemberRole.ADMIN),
+            eq(member.role, MemberRole.MODERATOR)
+          )
+        )
+      )
+      .limit(1)
+      .execute();
+
+    if (memberRecord.length === 0) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
