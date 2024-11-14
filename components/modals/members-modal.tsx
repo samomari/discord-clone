@@ -139,7 +139,7 @@ export const MembersModal = () => {
                         <DropdownMenuPortal>
                           <DropdownMenuSubContent>
                             <DropdownMenuItem 
-                              onClick={() => onRoleChange(member.id, "GUEST")}
+                              onClick={() => onRoleChange(member.id, MemberRole.GUEST)}
                             >
                               <Shield className="h-4 w-4 mr-2"/>
                               Guest
@@ -150,7 +150,7 @@ export const MembersModal = () => {
                               )}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => onRoleChange(member.id, "MODERATOR")}
+                              onClick={() => onRoleChange(member.id, MemberRole.MODERATOR)}
                             >
                               <ShieldCheck className="h-4 w-4 mr-2"/>
                               Moderator

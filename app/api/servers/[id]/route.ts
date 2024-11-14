@@ -2,7 +2,7 @@ import { currentProfile } from "@/lib/current-profile";
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
 import { member, server } from "@/db/schema";
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { MemberRole } from "@/types";
 
 export async function DELETE (
@@ -70,7 +70,11 @@ export async function PATCH (
 
     const updatedServer = await db
       .update(server)
-      .set({ name: name, imageUrl: imageUrl })
+      .set({ 
+        name: name, 
+        imageUrl: imageUrl,
+        updatedAt: sql`CURRENT_TIMESTAMP`, 
+      })
       .where(
         and(
           eq(server.id, id),

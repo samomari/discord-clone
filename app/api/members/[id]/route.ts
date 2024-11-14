@@ -2,7 +2,7 @@ import { currentProfile } from "@/lib/current-profile";
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
 import { member, server, profile } from "@/db/schema";
-import { and, eq, ne, asc } from "drizzle-orm";
+import { and, eq, ne, asc, sql } from "drizzle-orm";
 
 export async function DELETE (
   req: Request,
@@ -111,7 +111,10 @@ export async function PATCH (
 
     await db
       .update(member)
-      .set({ role })
+      .set({ 
+        role: role,
+        updatedAt: sql`CURRENT_TIMESTAMP`, 
+      })
       .where(
         and(
           eq(member.serverId, serverId),

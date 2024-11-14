@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Select, 
   SelectContent,
@@ -46,41 +46,35 @@ const formSchema = z.object({
   type: z.nativeEnum(ChannelType),
 });
 
-export const CreateChannelModal = () => {
+export const EditChannelModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
-  const params = useParams();
   
-  const isModalOpen = isOpen && type === "createChannel";
-  const { channelType } = data;
+  const isModalOpen = isOpen && type === "editChannel";
+  const { channel, server} = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:{
-      name: "",
-      type: ChannelType.TEXT,
-    }
   });
 
   useEffect(() => {
-    form.reset({
-      name: "",
-      type: channelType ?? ChannelType.TEXT,
-    });
-  }, [channelType, isModalOpen, form]);
+    if (channel) {
+      form.setValue("name", channel.name);
+      form.setValue("type", channel.type as ChannelType);
+    }
+  }, [form, channel]);
 
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log("params",params?.serverId);
       const url = qs.stringifyUrl({
-        url: "/api/channels",
+        url: `/api/channels/${channel?.id}`,
         query: {
-          id: params?.id,
+          serverId: server?.id
         },
       });
-      await axios.post(url, values);
+      await axios.patch(url, values);
       form.reset();
       router.refresh();
       onClose();
@@ -99,7 +93,7 @@ export const CreateChannelModal = () => {
       <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Create Channel
+            Edit Channel
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -134,7 +128,7 @@ export const CreateChannelModal = () => {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel
+                    <FormLabel 
                       className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70"
                     >
                       Channel Type
@@ -172,7 +166,7 @@ export const CreateChannelModal = () => {
             </div>
             <DialogFooter className="bg-gray-100 px-6 py-4">
               <Button variant="primary" disabled={isLoading}>
-                Create
+                Save
               </Button>
             </DialogFooter>
           </form>
