@@ -63,12 +63,11 @@ export const CreateChannelModal = () => {
   });
 
   useEffect(() => {
-    if (channelType) {
-      form.setValue("type", channelType);
-    } else {
-      form.setValue("type", ChannelType.TEXT);
-    }
-  }, [channelType, form]);
+    form.reset({
+      name: "",
+      type: channelType ?? ChannelType.TEXT,
+    });
+  }, [channelType, isModalOpen, form]);
 
   const isLoading = form.formState.isSubmitting;
 
