@@ -11,6 +11,7 @@ import {
   CommandList 
 } from "@/components/ui/command";
 import { useParams, useRouter } from "next/navigation";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 interface ServerSearchProps {
   data: {
@@ -76,6 +77,7 @@ export const ServerSearch = ({
         </kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
+        <DialogTitle className="hidden">Search</DialogTitle>
         <CommandInput placeholder="Search all channels and members" />
         <CommandList>
           <CommandEmpty >
