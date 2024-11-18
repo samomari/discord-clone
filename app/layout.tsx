@@ -7,6 +7,11 @@ import { ModalProvider } from '@/components/providers/modal-provider';
 
 const font = Open_Sans({ subsets: ['latin'] });
 
+export const metadata = {
+  title: 'echo',
+  description: 'Discord clone',
+}
+
 export default function RootLayout({
   children,
 }: {
