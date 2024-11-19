@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import { SelectChannel, SelectServer } from "@/db/schema"
 import { ChannelType } from '@/types';
 
-export type ModalType = 'createServer' | 'invite' | 'editServer' | 'members' | 'createChannel' | 'leaveServer' | 'deleteServer' | 'deleteChannel' | 'editChannel';
+export type ModalType = 'createServer' | 'invite' | 'editServer' | 'members' | 'createChannel' | 'leaveServer' | 'deleteServer' | 'deleteChannel' | 'editChannel' | 'messageFile';
 
 interface ModalData {
   server?: SelectServer;
   channel?: SelectChannel;
   channelType?: ChannelType;
+  apiUrl?: string;
+  query?: Record<string, any>;
 }
 
 interface ModalStore {
