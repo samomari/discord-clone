@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { channel, member } from "@/db/schema";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
+import { ChatMessages } from "@/components/chat/chat-messages";
 
 interface ChannelIdPageProps {
   params: {
@@ -53,7 +54,20 @@ export default async function Page ({
         serverId={channelData[0].serverId}
         type="channel"
       />
-      <div className="flex-1">Future Messages</div>
+      <ChatMessages 
+        member={memberData[0]}
+        name={channelData[0].name}
+        chatId={channelData[0].id}
+        type="channel"
+        apiUrl="/api/messages"
+        socketUrl="/api/socket/messages"
+        socketQuery={{
+          channelId: channelData[0].id,
+          serverId: channelData[0].serverId,
+        }}
+        paramKey="channelId"
+        paramValue={channelData[0].id}
+      />
       <ChatInput 
         name={channelData[0].name}
         type="channel"
