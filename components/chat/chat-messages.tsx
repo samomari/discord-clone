@@ -89,6 +89,7 @@ export const ChatMessages = ({
                 profile={message.profiles}
                 content={message.messages.content}
                 fileUrl={message.messages.fileUrl}
+                fileType={message.messages.fileType}
                 deleted={message.messages.deleted}
                 timestamp={format(new Date(message.messages.createdAt), DATE_FORMAT)}
                 isUpdated={message.messages.updatedAt !== message.messages.createdAt}

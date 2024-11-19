@@ -7,21 +7,20 @@ import { UploadDropzone } from "@/lib/uploadthing";
 import { useState } from "react";
 
 interface FileUploadProps {
-  onChange: (url?: string) => void;
+  onChange: (fileData: { url: string; type: string }) => void;
   value: string;
+  type: string;
   endpoint: "messageFile" | "serverImage";
 }
 
 export const FileUpload = ({
   onChange,
-  value,  
+  value,
+  type,
   endpoint,
 }: FileUploadProps) => {
   const [fileName, setFileName] = useState<string | null>(null);
-
-  const fileType = fileName?.split(".").pop();
-
-  if (value && fileType !== "pdf") {
+  if (value && type !== "pdf") {
     return (
       <div className="relative h-20 w-20">
         <Image 
@@ -31,7 +30,7 @@ export const FileUpload = ({
           className="rounded-full"
         />
         <button 
-          onClick={() => onChange("")}
+           onClick={() => onChange({ url: "", type: "" })}
           className="bg-rose-500 text-white p-1
           rounded-full absolute top-0 right-0 shadow-sm"
           type="button"
@@ -42,7 +41,7 @@ export const FileUpload = ({
     )
   }
 
-  if (value && fileType === "pdf") {
+  if (value && type === "pdf") {
     return (
       <div className="relative flex items-center p-2 mt-2 rounded-md bg-background/10">
         <FileIcon className="h-10 w-10 fill-indigo-200 stroke-indigo-400"/>
@@ -55,7 +54,7 @@ export const FileUpload = ({
           {fileName}
         </a>
         <button 
-          onClick={() => onChange("")}
+           onClick={() => onChange({ url: "", type: "" })}
           className="bg-rose-500 text-white p-1
           rounded-full absolute -top-2 -right-2 shadow-sm"
           type="button"
@@ -70,8 +69,12 @@ export const FileUpload = ({
     <UploadDropzone 
       endpoint={endpoint}
       onClientUploadComplete={(res) => {
-        onChange(res?.[0].url);
-        setFileName(res?.[0].name);
+        const uploadedFile = res?.[0];
+        onChange({ 
+          url: uploadedFile.url, 
+          type: uploadedFile.name.split(".").pop() || "unknown" 
+        });
+        setFileName(uploadedFile.name);
       }}
       onUploadError={(error: Error) =>{
         alert(error);

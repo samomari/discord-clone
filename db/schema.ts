@@ -68,6 +68,7 @@ export const message = pgTable('messages', {
   id: uuid('id').primaryKey().defaultRandom(),
   content: text('content').notNull(),
   fileUrl: text('fileUrl').default(null),
+  fileType: text('fileType').default(null),
   memberId: uuid('memberId')
     .notNull()
     .references(() => member.id, { onDelete: 'cascade' }),
@@ -97,6 +98,7 @@ export const directMessage = pgTable('direct_messages', {
   id: uuid('id').primaryKey().defaultRandom(),
   content: text('content').notNull(),
   fileUrl: text('fileUrl').default(null),
+  fileType: text('fileType').default(null),
   memberId: uuid('memberId')
     .notNull()
     .references(() => member.id, { onDelete: 'cascade' }),

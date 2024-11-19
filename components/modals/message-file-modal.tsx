@@ -28,7 +28,10 @@ import { useModal } from "@/hooks/use-modal-store";
 const formSchema = z.object({
   fileUrl: z.string().min(1, {
     message: "Attachment is required.",
-  })
+  }),
+  fileType: z.string().min(1, {
+    message: "File type is required.",
+  }),
 });
 
 export const MessageFileModal = () => {
@@ -42,6 +45,7 @@ export const MessageFileModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues:{
       fileUrl: "",
+      fileType: "",
     }
   });
 
@@ -60,7 +64,7 @@ export const MessageFileModal = () => {
       })
 
       await axios.post(url, {
-        ...values,
+        ...values, 
         content: values.fileUrl,
       });
 
@@ -97,7 +101,11 @@ export const MessageFileModal = () => {
                         <FileUpload 
                           endpoint="messageFile"
                           value={field.value}
-                          onChange={field.onChange}
+                          type={form.watch("fileType")}
+                          onChange={({ url, type }) => {
+                            field.onChange(url); 
+                            form.setValue("fileType", type); 
+                          }}
                         />
                       </FormControl>
                     </FormItem>

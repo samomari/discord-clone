@@ -13,6 +13,7 @@ interface ChatItemProps {
   member: SelectMember;
   timestamp: string;
   fileUrl: string | null;
+  fileType: string | null;
   deleted: boolean;
   currentMember: SelectMember;
   isUpdated: boolean;
@@ -33,14 +34,13 @@ export const ChatItem = ({
   member,
   timestamp,
   fileUrl,
+  fileType,
   deleted,
   currentMember,
   isUpdated,
   socketUrl,
   socketQuery
 }: ChatItemProps) => {
-  const fileType = fileUrl?.split(".").pop();
-
   const isAdmin = currentMember.role === MemberRole.ADMIN;
   const isModerator = currentMember.role === MemberRole.MODERATOR;
   const isOwner = currentMember.id === member.id;
@@ -48,7 +48,6 @@ export const ChatItem = ({
   const canEditMessage = !deleted && isOwner && !fileUrl;
   const isPDF = fileType === "pdf" && fileUrl;
   const isImage = !isPDF && fileUrl;
-  console.log("fileUrl", fileUrl);
   
   return (
     <div className="relative group flex items-center hover:bg-black/5 p-4 transition w-full">
