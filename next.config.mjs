@@ -3,16 +3,16 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',  // Use 'https' if the domains support it
+        protocol: 'https',  
         hostname: 'utfs.io',
-        port: '',           // Leave empty for default ports
-        pathname: '/**',    // Matches all paths under this domain
+        port: '',           
+        pathname: '/**',    
       },
       {
-        protocol: 'https',  // Use 'https' if the domains support it
+        protocol: 'https',  
         hostname: 'i.pravatar.cc',
-        port: '',           // Leave empty for default ports
-        pathname: '/**',    // Matches all paths under this domain
+        port: '',           
+        pathname: '/**',    
       },
     ],
   },
