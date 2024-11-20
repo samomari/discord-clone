@@ -29,7 +29,10 @@ import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Server name is required"),
-  imageUrl: z.string().min(1,"Server image is required"),
+  imageUrl: z.object({
+    url: z.string().min(1, "Image URL is required"),
+    type: z.string().min(1),
+  }),
 });
 
 export const EditServerModal = () => {
@@ -42,16 +45,22 @@ export const EditServerModal = () => {
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:{
+    defaultValues: {
       name: "",
-      imageUrl:"",
-    }
+      imageUrl: {
+        url: "",
+        type: "jpg",
+      },
+    },
   });
 
   useEffect(() => {
     if (server) {
       form.setValue("name", server.name);
-      form.setValue("imageUrl", server.imageUrl);
+      form.setValue("imageUrl", {
+        url: server.imageUrl,   
+        type: "jpg",  
+      });
     }
   }, [server, form]);
 
@@ -59,7 +68,11 @@ export const EditServerModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.patch(`/api/servers/${server?.id}`, values);
+      await axios.patch(`/api/servers/${server?.id}`, {
+        name: values.name,
+        imageUrl: values.imageUrl.url,
+      });
+
       form.reset();
       router.refresh();
       onClose();
@@ -96,8 +109,9 @@ export const EditServerModal = () => {
                       <FormControl>
                         <FileUpload 
                           endpoint="serverImage"
-                          value={field.value}
-                          onChange={field.onChange}
+                          value={field.value.url}
+                          type={field.value.type}
+                          onChange={({ url, type }) => field.onChange({ url, type })}
                         />
                       </FormControl>
                       <FormMessage />

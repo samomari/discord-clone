@@ -28,7 +28,10 @@ import axios from "axios";
 
 const formSchema = z.object({
   name: z.string().min(1, "Server name is required"),
-  imageUrl: z.string().min(1,"Server image is required"),
+  imageUrl: z.object({
+    url: z.string().min(1, "Image URL is required"),
+    type: z.string().min(1),
+  }),
 });
 
 export const InitialModal = () => {
@@ -42,17 +45,23 @@ export const InitialModal = () => {
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:{
+    defaultValues: {
       name: "",
-      imageUrl:"",
-    }
+      imageUrl: {
+        url: "",
+        type: "",
+      },
+    },
   });
 
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.post("/api/servers", values);
+      await axios.post("/api/servers", {
+        name: values.name,
+        imageUrl: values.imageUrl.url,
+      });
 
       form.reset();
       router.refresh();
@@ -89,8 +98,9 @@ export const InitialModal = () => {
                       <FormControl>
                         <FileUpload 
                           endpoint="serverImage"
-                          value={field.value}
-                          onChange={field.onChange}
+                          value={field.value.url}
+                          type={field.value.type}
+                          onChange={({ url, type }) => field.onChange({ url, type })}
                         />
                       </FormControl>
                       <FormMessage />

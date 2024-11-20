@@ -26,11 +26,9 @@ import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 
 const formSchema = z.object({
-  fileUrl: z.string().min(1, {
-    message: "Attachment is required.",
-  }),
-  fileType: z.string().min(1, {
-    message: "File type is required.",
+  fileUpload: z.object({
+    url: z.string().min(1, { message: "Attachment is required." }),
+    type: z.string().min(1),
   }),
 });
 
@@ -43,10 +41,12 @@ export const MessageFileModal = () => {
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:{
-      fileUrl: "",
-      fileType: "",
-    }
+    defaultValues: {
+      fileUpload: {
+        url: "",
+        type: "",
+      },
+    },
   });
 
   const handleClose = () => {
@@ -64,8 +64,8 @@ export const MessageFileModal = () => {
       })
 
       await axios.post(url, {
-        ...values, 
-        content: values.fileUrl,
+        content: values.fileUpload.url, 
+        fileType: values.fileUpload.type, 
       });
 
       form.reset();
@@ -94,18 +94,15 @@ export const MessageFileModal = () => {
               <div className="flex items-center justify-center text-center">
                 <FormField 
                   control={form.control}
-                  name="fileUrl"
+                  name="fileUpload"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <FileUpload 
                           endpoint="messageFile"
-                          value={field.value}
-                          type={form.watch("fileType")}
-                          onChange={({ url, type }) => {
-                            field.onChange(url); 
-                            form.setValue("fileType", type); 
-                          }}
+                          value={field.value.url}
+                          type={field.value.type}
+                          onChange={({ url, type }) => field.onChange({ url, type })}
                         />
                       </FormControl>
                     </FormItem>

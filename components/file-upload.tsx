@@ -20,6 +20,7 @@ export const FileUpload = ({
   endpoint,
 }: FileUploadProps) => {
   const [fileName, setFileName] = useState<string | null>(null);
+
   if (value && type !== "pdf") {
     return (
       <div className="relative h-20 w-20">
@@ -30,7 +31,7 @@ export const FileUpload = ({
           className="rounded-full"
         />
         <button 
-           onClick={() => onChange({ url: "", type: "" })}
+          onClick={() => onChange({ url: "", type: "" })}
           className="bg-rose-500 text-white p-1
           rounded-full absolute top-0 right-0 shadow-sm"
           type="button"
@@ -70,11 +71,11 @@ export const FileUpload = ({
       endpoint={endpoint}
       onClientUploadComplete={(res) => {
         const uploadedFile = res?.[0];
+        setFileName(uploadedFile.name);
         onChange({ 
           url: uploadedFile.url, 
-          type: uploadedFile.name.split(".").pop() || "unknown" 
+          type: uploadedFile.name.split(".").pop()
         });
-        setFileName(uploadedFile.name);
       }}
       onUploadError={(error: Error) =>{
         alert(error);
