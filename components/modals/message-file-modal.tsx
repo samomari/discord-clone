@@ -64,8 +64,9 @@ export const MessageFileModal = () => {
       })
 
       await axios.post(url, {
-        content: values.fileUpload.url, 
-        fileType: values.fileUpload.type, 
+        content: values.fileUpload.url,
+        fileUrl: values.fileUpload.url,
+        fileType: values.fileUpload.type
       });
 
       form.reset();
@@ -75,7 +76,6 @@ export const MessageFileModal = () => {
       console.log(error);
     }
   }
-
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>

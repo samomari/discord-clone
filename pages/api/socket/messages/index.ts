@@ -38,7 +38,12 @@ export default async function handler(
       .select()
       .from(server)
       .leftJoin(member, eq(server.id, member.serverId))
-      .where(and(eq(server.id, serverId as string), eq(member.profileId, curProfile.id )))
+      .where(
+        and(
+          eq(server.id, serverId as string), 
+          eq(member.profileId, curProfile.id)
+        )
+      )
       .execute();
     
     if (!serverData || serverData.length === 0) {
@@ -55,7 +60,12 @@ export default async function handler(
     const channelData = await db
       .select()
       .from(channel)
-      .where(and(eq(channel.id, channelId as string), eq(channel.serverId, serverId as string )))
+      .where(
+        and(
+          eq(channel.id, channelId as string), 
+          eq(channel.serverId, serverId as string)
+        )
+      )
       .limit(1)
       .execute();
 
