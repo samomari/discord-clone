@@ -1,7 +1,7 @@
 import { Server as NetServer, Socket } from "net";
 import { NextApiResponse } from "next";
 import { Server as SocketIOServer } from "socket.io";
-import { SelectMember, SelectProfile, SelectServer } from "./db/schema";
+import { SelectMember, SelectProfile, SelectServer, SelectMessage } from "./db/schema";
 
 export type ServerWithMembersWithProfiles = SelectServer & {
   members: (SelectMember & { profile: SelectProfile;})[];
@@ -25,3 +25,7 @@ export type NextApiResponseServerIO = NextApiResponse & {
     };
   };
 };
+
+export type MessageWithMemberWithProfile = SelectMessage & {
+  member : SelectMember & { profile: SelectProfile }
+}

@@ -89,11 +89,7 @@ export default async function handler(
       .execute();
 
     const fullMessage = await db
-    .select({
-      message: message,
-      member: member,
-      profile: profile,
-    })
+    .select()
     .from(message)
     .leftJoin(member, eq(message.memberId, member.id))
     .leftJoin(profile, eq(member.profileId, curProfile.id))
