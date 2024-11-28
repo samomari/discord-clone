@@ -13,8 +13,6 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
       cors: {
         origin: 'http://localhost:3000',
         methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type'],
-  credentials: true,
       },
     });
 

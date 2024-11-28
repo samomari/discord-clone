@@ -31,17 +31,19 @@ export const SocketProvider = ({
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketInstance = new (ClientIO as any)(process.env.NEXT_PUBLIC_SITE_URL!, {
+    const socketInstance = ClientIO(process.env.NEXT_PUBLIC_SITE_URL!, {
       path: "/api/socket/io",
-      addTrailingSlash: false,
     });
+    console.log(socketInstance);
 
     socketInstance.on("connect", () => {
+      console.log("Connected to server with ID:", socketInstance.id);
       setIsConnected(true);
     });
 
     socketInstance.on("disconnect", () => {
       setIsConnected(false);
+      console.log("Disconnected from socket.io");
     });
 
     setSocket(socketInstance);

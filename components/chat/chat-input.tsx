@@ -16,6 +16,7 @@ import { Plus } from "lucide-react";
 import { useModal } from "@/hooks/use-modal-store";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/components/providers/socket-provider";
 
 interface ChatInputProps {
   apiUrl: string;
@@ -36,6 +37,7 @@ export const ChatInput = ({
 }: ChatInputProps) => {
   const { onOpen } = useModal();
   const router = useRouter();
+  const { socket, isConnected } = useSocket();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,19 +49,19 @@ export const ChatInput = ({
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const url = qs.stringifyUrl({
-        url: apiUrl,
-        query,
-      });
+    if (socket && isConnected) {
+      try {
+        socket.emit('message', values.content);
 
-      await axios.post(url, values);
-      form.reset();
-      router.refresh();
-    } catch (error) {
-      console.log(error);
+        form.reset();
+        router.refresh();
+      } catch (error) {
+        console.log('Error sending message: ', error);
+      }
+    } else {
+      console.log('Socket not connected');
     }
-  }
+  };
 
   return (
     <Form {...form}>
