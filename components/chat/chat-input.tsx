@@ -51,7 +51,14 @@ export const ChatInput = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (socket && isConnected) {
       try {
-        socket.emit('message', values.content);
+        const { serverId, channelId, profileId } = query;
+
+        socket.emit('message', {
+          content: values.content,
+          serverId,
+          channelId, 
+          profileId 
+        });
 
         form.reset();
         router.refresh();

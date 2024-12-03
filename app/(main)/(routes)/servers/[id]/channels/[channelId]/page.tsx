@@ -75,6 +75,7 @@ export default async function Page ({
         query={{
           channelId: channelId,
           serverId: id,
+          profileId: profile.id,
         }}
       />
     </div>
