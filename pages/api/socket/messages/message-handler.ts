@@ -3,85 +3,93 @@ import { server, channel, member, message, profile } from "@/db/schema";
 import { MemberRole } from "@/types";
 import { eq, and, sql } from "drizzle-orm";
 
+async function fetchServerData (serverId, profileId) {
+  const result = await db
+    .select()
+    .from(server)
+    .leftJoin(member, eq(server.id, member.serverId))
+    .where(
+      and(
+        eq(server.id, serverId), 
+        eq(member.profileId, profileId)
+      )
+    )
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
+
+async function fetchChannelData (serverId, channelId) {
+  const result = await db
+    .select()
+    .from(channel)
+    .where(
+      and(
+        eq(channel.serverId, serverId), 
+        eq(channel.id, channelId)
+      )
+    )
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
+
+async function fetchMessageData (messageId, channelId) {
+  const result = await db
+    .select()
+    .from(message)
+    .where(
+      and(
+        eq(message.id, messageId), 
+        eq(message.channelId, channelId)
+      )
+    )
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
+
+function canModifyMessage(memberData) {
+  if (!memberData) return false;
+  const isAdmin = memberData.role === MemberRole.ADMIN;
+  const isModerator = memberData.role === MemberRole.MODERATOR;
+  return isAdmin || isModerator;
+}
+
+function isMessageOwner(memberData, messageData) {
+  if (!memberData || !messageData) return false;
+  return messageData.memberId === memberData.id;
+}
+
+function validateInputs ({ profileId, serverId, channelId }) {
+  if (!profileId) throw new Error("Unauthorized: Missing profileId");
+  if (!serverId) throw new Error("Server ID missing");
+  if (!channelId) throw new Error("Channel ID missing");
+}
+
 export async function handleUpdateMessage(data) {
   try {
     const { messageId, serverId, channelId, profileId, content } = data;
 
-    if (!profileId) {
-      throw new Error("Unauthorized: Missing profileId");
-    }
+    validateInputs({ profileId, serverId, channelId});
 
-    if (!serverId) {
-      throw new Error("Server ID missing");
-    }
+    const serverData = await fetchServerData(serverId, profileId);
+    if (!serverData) throw new Error("Server not found");
+    
+    const channelData = await fetchChannelData(serverId, channelId);
+    if (!channelData ) throw new Error("Channel not found");
 
-    if (!channelId) {
-      throw new Error("Channel ID missing");
-    }
+    const messageData = await fetchMessageData(messageId, channelId);
+    if (!messageData) throw new Error("Message not found or already deleted");
 
-    const serverData = await db
-      .select()
-      .from(server)
-      .leftJoin(member, eq(server.id, member.serverId))
-      .where(
-        and(
-          eq(server.id, serverId), 
-          eq(member.profileId, profileId)
-        )
-      )
-      .limit(1)
-      .execute();
+    const memberData = serverData.members;
+    if (!memberData) throw new Error("Member data not found");
 
-    if (!serverData || serverData.length === 0) {
-      console.log("Server not found");
-      return;
-    }
-
-    const channelData = await db
-      .select()
-      .from(channel)
-      .where(
-        and(
-          eq(channel.serverId, serverId), 
-          eq(channel.id, channelId)
-        )
-      )
-      .limit(1)
-      .execute();
-
-    if (!channelData || channelData.length === 0) {
-      console.log("Channel not found");
-      return;
-    }
-
-    const memberData = serverData[0].members;
-
-    if (!memberData || memberData.profileId !== profileId) {
-      console.log("Member not found" );
-      return;
-    }
-
-    const messageData = await db
-      .select()
-      .from(message)
-      .where(
-        and(
-          eq(message.id, messageId), 
-          eq(message.channelId, channelId)
-        )
-      )
-      .limit(1)
-      .execute();
-
-    if (!messageData || messageData.length === 0 || messageData[0].deleted) {
-      throw new Error("Message not found or already deleted");
-    }
-
-    const isMessageOwner = messageData[0].memberId === memberData.id;
-
-    if (!isMessageOwner) {
-      console.log("Unauthorized");
-      return;
+    if (!isMessageOwner(memberData, messageData)) {
+      throw new Error("Only message owner can update message");
     }
 
     await db
@@ -90,20 +98,15 @@ export async function handleUpdateMessage(data) {
         content,
         updatedAt: sql`CURRENT_TIMESTAMP`,
         })
-      .where(eq(message.id, messageId as string))
-      .execute();
-
-    const updatedMessage = await db
-      .select()
-      .from(message)
       .where(eq(message.id, messageId))
-      .limit(1)
       .execute();
 
-    return updatedMessage[0];
+    const updatedMessage = await fetchMessageData(messageId, channelId);
 
+    return updatedMessage;
   } catch (error) {
     console.log("[MESSAGE_UPDATE]", error);
+    return { error: error.message };
   }
 }
 
@@ -111,85 +114,21 @@ export async function handleDeleteMessage(data) {
   try {
     const { messageId, serverId, channelId, profileId} = data;
 
-    if (!profileId) {
-      throw new Error("Unauthorized: Missing profileId");
-    }
+    validateInputs({ profileId, serverId, channelId });
 
-    if (!serverId) {
-      throw new Error("Server ID missing");
-    }
+    const serverData = await fetchServerData(serverId, profileId);
+    if (!serverData) throw new Error("Server not found");
 
-    if (!channelId) {
-      throw new Error("Channel ID missing");
-    }
+    const channelData = await fetchChannelData(serverId, channelId);
+    if (!channelData ) throw new Error("Channel not found");
 
-    const serverData = await db
-      .select()
-      .from(server)
-      .leftJoin(member, eq(server.id, member.serverId))
-      .where(
-        and(
-          eq(server.id, serverId), 
-          eq(member.profileId, profileId)
-        )
-      )
-      .limit(1)
-      .execute();
+    const messageData = await fetchMessageData(messageId, channelId);
+    if (!messageData) throw new Error("Message not found or already deleted");
 
-    if (!serverData || serverData.length === 0) {
-      console.log("Server not found");
-      return;
-    }
+    const memberData = serverData.members;
+    if (!memberData) throw new Error("Member data not found");
 
-    const channelData = await db
-      .select()
-      .from(channel)
-      .where(
-        and(
-          eq(channel.serverId, serverId), 
-          eq(channel.id, channelId)
-        )
-      )
-      .limit(1)
-      .execute();
-
-    if (!channelData || channelData.length === 0) {
-      console.log("Channel not found");
-      return;
-    }
-
-    const memberData = serverData[0].members;
-
-    if (!memberData || memberData.profileId !== profileId) {
-      console.log("Member not found" );
-      return;
-    }
-
-    const messageData = await db
-      .select()
-      .from(message)
-      .where(
-        and(
-          eq(message.id, messageId), 
-          eq(message.channelId, channelId)
-        )
-      )
-      .limit(1)
-      .execute();
-
-    if (!messageData || messageData.length === 0 || messageData[0].deleted) {
-      throw new Error("Message not found or already deleted");
-    }
-
-    const isMessageOwner = messageData[0].memberId === memberData.id;
-    const isAdmin = memberData.role === MemberRole.ADMIN;
-    const isModerator = memberData.role === MemberRole.MODERATOR;
-    const canModify = isMessageOwner || isAdmin || isModerator;
-
-    if (!canModify) {
-      console.log("Unauthorized");
-      return;
-    }
+    if(!canModifyMessage(memberData) && !isMessageOwner(memberData, messageData)) throw new Error("Unauthorized");
 
     await db
       .update(message)
@@ -203,17 +142,12 @@ export async function handleDeleteMessage(data) {
       .where(eq(message.id, messageId))
       .execute();
 
-    const updatedMessage = await db
-      .select()
-      .from(message)
-      .where(eq(message.id, messageId))
-      .limit(1)
-      .execute();
+    const updatedMessage = await fetchMessageData(messageId, channelId);
 
-    return updatedMessage[0];
-
+    return updatedMessage;
   } catch (error) {
     console.log("[MESSAGE_DELETE]", error);
+    return { error: error.message };
   }
 }
 
@@ -221,44 +155,16 @@ export async function handleCreateMessage(data) {
   try {
     const { serverId, channelId, content, fileUrl, fileType, profileId} = data; 
 
-    if (!profileId) {
-      throw new Error("Unauthorized: Missing profileId");
-    }
+    validateInputs({ profileId, serverId, channelId });
+    
+    if (!content) throw new Error("Content missing");
+    
+    const serverData = await fetchServerData(serverId, profileId);
+    if (!serverData) throw new Error("Server not found");
 
-    if (!serverId) {
-      throw new Error("Server ID missing");
-    }
-
-    if (!channelId) {
-      throw new Error("Channel ID missing");
-    }
-
-    if (!content) {
-      throw new Error("Content missing");
-    }
-
-    const serverData = await db
-      .select()
-      .from(server)
-      .leftJoin(member, eq(server.id, member.serverId))
-      .where(
-        and(
-          eq(server.id, serverId),
-          eq(member.profileId, profileId)
-        )
-      )
-      .execute();
-
-    if (!serverData || serverData.length === 0) {
-      throw new Error("Server not found");
-    }
-
-    const memberInfo = serverData[0].members;
-
-    if (!memberInfo) {
-      throw new Error("Member not found");
-    }
-
+    const memberData = serverData.members;
+    if (!memberData) throw new Error("Member not found");
+    
     const insertedMessage = await db
       .insert(message)
       .values({
@@ -266,7 +172,7 @@ export async function handleCreateMessage(data) {
         fileUrl,
         fileType,
         channelId,
-        memberId: memberInfo.id,
+        memberId: memberData.id,
       })
       .returning()
       .execute();
@@ -283,5 +189,6 @@ export async function handleCreateMessage(data) {
     return fullMessage[0];
   } catch (error) {
     console.log("[MESSAGES_POST]", error);
+    return { error: error.message };
   }
 }
