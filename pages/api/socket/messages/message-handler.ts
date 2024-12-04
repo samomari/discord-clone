@@ -8,18 +8,15 @@ export async function handleUpdateMessage(data) {
     const { messageId, serverId, channelId, profileId, content } = data;
 
     if (!profileId) {
-      console.log("Unauthorized")
-      return;
+      throw new Error("Unauthorized: Missing profileId");
     }
 
     if (!serverId) {
-      console.log("Server ID missing");
-      return;
+      throw new Error("Server ID missing");
     }
 
     if (!channelId) {
-      console.log("Channel ID missing");
-      return;
+      throw new Error("Channel ID missing");
     }
 
     const serverData = await db
@@ -115,18 +112,15 @@ export async function handleDeleteMessage(data) {
     const { messageId, serverId, channelId, profileId} = data;
 
     if (!profileId) {
-      console.log("Unauthorized")
-      return;
+      throw new Error("Unauthorized: Missing profileId");
     }
 
     if (!serverId) {
-      console.log("Server ID missing");
-      return;
+      throw new Error("Server ID missing");
     }
 
     if (!channelId) {
-      console.log("Channel ID missing");
-      return;
+      throw new Error("Channel ID missing");
     }
 
     const serverData = await db
