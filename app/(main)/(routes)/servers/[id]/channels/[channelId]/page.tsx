@@ -61,9 +61,10 @@ export default async function Page ({
         type="channel"
         apiUrl="/api/messages"
         socketUrl="/api/socket/messages"
-        socketQuery={{
-          channelId: channelData[0].id,
-          serverId: channelData[0].serverId,
+        query={{
+          channelId: channelId,
+          serverId: id,
+          profileId: profile.id,
         }}
         paramKey="channelId"
         paramValue={channelData[0].id}

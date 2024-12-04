@@ -14,33 +14,44 @@ import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import axios from "axios";
+import { useSocket } from "@/components/providers/socket-provider";
 
 
 export const DeleteMessageModal = () => {
   const { isOpen, onClose, type, data } = useModal();
+  const { socket, isConnected } = useSocket();
   
   const isModalOpen = isOpen && type === "deleteMessage";
-  const { apiUrl, query } = data;
-
+  const { query, apiUrl } = data;
+  
+ 
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
-    try {
-      setIsLoading(true);
-      const url = qs.stringifyUrl({
-        url: apiUrl || "",
-        query,
-      })
+    if (socket && isConnected) {
+      try {
+        setIsLoading(true);
+        const messageId = apiUrl.split("/").pop();
+        const { serverId, channelId, profileId } = query;
+        console.log("msg id: ",messageId);
+        
+        socket.emit('deleteMessage', { 
+          messageId, 
+          serverId, 
+          channelId, 
+          profileId 
+        });
 
-      await axios.delete(url);
-
-      onClose();
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
+        onClose();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      console.log('Socket not connected');
     }
-  }
+  };
   
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>

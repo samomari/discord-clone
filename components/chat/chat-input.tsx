@@ -53,7 +53,7 @@ export const ChatInput = ({
       try {
         const { serverId, channelId, profileId } = query;
 
-        socket.emit('message', {
+        socket.emit('createMessage', {
           content: values.content,
           serverId,
           channelId, 

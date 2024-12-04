@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 import { useRouter, useParams } from "next/navigation";
+import { useSocket } from "@/components/providers/socket-provider";
 
 interface ChatItemProps {
   id: string;
@@ -36,7 +37,7 @@ interface ChatItemProps {
   currentMember: SelectMember;
   isUpdated: boolean;
   socketUrl: string;
-  socketQuery: Record<string, string>;
+  query: Record<string, string>;
 };
 
 const roleIconMap = {
@@ -61,12 +62,13 @@ export const ChatItem = ({
   currentMember,
   isUpdated,
   socketUrl,
-  socketQuery
+  query
 }: ChatItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const { onOpen } = useModal();
   const params = useParams();
   const router = useRouter();
+  const { socket, isConnected } = useSocket();
 
   const onMemberClick = () => {
     if (member.id === currentMember.id) {
@@ -106,18 +108,24 @@ export const ChatItem = ({
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try{
-      const url = qs.stringifyUrl({
-        url: `${socketUrl}/${id}`,
-        query: socketQuery,
-    })
+    if (socket && isConnected) {
+      try{
+        const messageId = id;
+        const { serverId, channelId, profileId } = query;
 
-    await axios.patch(url, values);
+        socket.emit('updateMessage', {
+          content: values.content,
+          messageId, 
+          serverId, 
+          channelId, 
+          profileId 
+        });
 
-    form.reset();
-    setIsEditing(false);
-    } catch (error) {
-      console.log(error);
+      form.reset();
+      setIsEditing(false);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
@@ -238,7 +246,7 @@ export const ChatItem = ({
             <Trash
               onClick={() => onOpen("deleteMessage", {
                 apiUrl: `${socketUrl}/${id}`,
-                query: socketQuery
+                query: query
               })}
               className="cursor-pointer ml-auto w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300 transition"
             />

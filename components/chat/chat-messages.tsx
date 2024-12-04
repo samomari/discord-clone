@@ -17,7 +17,7 @@ interface ChatMessagesProps {
   chatId: string;
   apiUrl: string;
   socketUrl: string;
-  socketQuery: Record<string, string>;
+  query: Record<string, string>;
   paramKey: "channelId" | "conversationId";
   paramValue: string;
   type: "channel" | "conversation";
@@ -29,7 +29,7 @@ export const ChatMessages = ({
   chatId,
   apiUrl,
   socketUrl,
-  socketQuery,
+  query,
   paramKey,
   paramValue,
   type
@@ -98,7 +98,7 @@ export const ChatMessages = ({
                 timestamp={format(new Date(message.messages.createdAt), DATE_FORMAT)}
                 isUpdated={message.messages.updatedAt !== message.messages.createdAt}
                 socketUrl={socketUrl}
-                socketQuery={socketQuery}
+                query={query}
               />
             ))}
           </Fragment>
