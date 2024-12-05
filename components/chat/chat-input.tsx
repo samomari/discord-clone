@@ -2,8 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import axios from "axios";
-import qs from "query-string";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form, 
@@ -17,6 +15,8 @@ import { useModal } from "@/hooks/use-modal-store";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/components/providers/socket-provider";
+import { useEffect } from "react";
+import { useChatStore } from "@/hooks/use-chat-store";
 
 interface ChatInputProps {
   apiUrl: string;
@@ -38,6 +38,7 @@ export const ChatInput = ({
   const { onOpen } = useModal();
   const router = useRouter();
   const { socket, isConnected } = useSocket();
+  const { addMessage } = useChatStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,6 +70,25 @@ export const ChatInput = ({
       console.log('Socket not connected');
     }
   };
+
+  useEffect(() => {
+    if (socket && isConnected) {
+      socket.on(`chat:${query.channelId}:messages`, (messageData) => {
+        if (messageData && messageData.messages) {
+          const newMessage = {
+            messages: messageData.messages,  
+            members: messageData.members,    
+            profiles: messageData.profiles   
+          };
+          addMessage(newMessage);
+        }
+      }, [socket, isConnected, query.channelId, addMessage]);
+
+      return () => {
+        socket.off(`chat:${query.channelId}:messages`);
+      };
+    }
+  })
 
   return (
     <Form {...form}>

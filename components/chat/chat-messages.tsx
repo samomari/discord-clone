@@ -1,13 +1,14 @@
 'use client';
 
-import { SelectMember, SelectMessage, SelectProfile } from "@/db/schema";
+import { SelectMember } from "@/db/schema";
 import { ChatWelcome } from "./chat-welcome";
 import { useChatQuery } from "@/hooks/use-chat-query";
 import { Loader2, ServerCrash } from "lucide-react";
-import { Fragment } from "react";
+import { useEffect } from "react";
 import { ChatItem } from "./chat-item";
 import { format } from "date-fns";
-import { useChatSocket } from "@/hooks/use-chat-socket";
+import { useChatStore } from "@/hooks/use-chat-store";
+import { useSocket } from "../providers/socket-provider";
 
 const DATE_FORMAT = "d MMM yyyy, HH:mm";
 
@@ -35,8 +36,7 @@ export const ChatMessages = ({
   type
 }: ChatMessagesProps) => {
   const queryKey = `chat:${chatId}`;
-  const addKey = `chat:${chatId}:messages`;
-  const updateKey = `chat:${chatId}:messages:update`;
+  const deleteKey = `chat:${chatId}:messages:delete`;
 
   const {
     data,
@@ -50,8 +50,34 @@ export const ChatMessages = ({
     paramKey,
     paramValue
   });
-  useChatSocket({ queryKey, addKey, updateKey});
 
+  const setMessages = useChatStore((state) => state.setMessages);
+  const messages = useChatStore((state) => state.messages);
+  const updateMessage = useChatStore((state) => state.updateMessage);
+  const { socket, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (socket && isConnected) {
+      const handleDelete = (deletedMessage) => {
+        updateMessage(deletedMessage);
+      };
+
+      socket.on(deleteKey, handleDelete);
+
+      return () => {
+        socket.off(deleteKey, handleDelete);
+      };
+    }
+  }, [socket, isConnected, updateMessage, deleteKey]);
+
+  useEffect(() => {
+    if (data && data.pages) {
+      const allMessages = data.pages.flatMap((page) => page.items);
+      setMessages(allMessages);
+    }
+    return () => setMessages([]);
+  }, [data, chatId, setMessages]); 
+  
   if (status === "pending") {
     return (
       <div className="flex flex-col flex-1 justify-center items-center">
@@ -82,26 +108,22 @@ export const ChatMessages = ({
         name={name}
       />
       <div className="flex flex-col-reverse mt-auto">
-        {data?.pages?.map((group, i) => (
-          <Fragment key={i}>
-            {group.items.map((message) => (
-              <ChatItem
-                key={message.messages.id}
-                id={message.messages.id}
-                currentMember={member}
-                member={message.members}
-                profile={message.profiles}
-                content={message.messages.content}
-                fileUrl={message.messages.fileUrl}
-                fileType={message.messages.fileType}
-                deleted={message.messages.deleted}
-                timestamp={format(new Date(message.messages.createdAt), DATE_FORMAT)}
-                isUpdated={message.messages.updatedAt !== message.messages.createdAt}
-                socketUrl={socketUrl}
-                query={query}
-              />
-            ))}
-          </Fragment>
+        {messages.map((message) => (
+          <ChatItem
+            key={message.messages.id}
+            id={message.messages.id}
+            currentMember={member}
+            member={message.members}
+            profile={message.profiles}
+            content={message.messages.content}
+            fileUrl={message.messages.fileUrl}
+            fileType={message.messages.fileType}
+            deleted={message.messages.deleted}
+            timestamp={format(new Date(message.messages.createdAt), DATE_FORMAT)}
+            isUpdated={message.messages.updatedAt !== message.messages.createdAt}
+            socketUrl={socketUrl}
+            query={query}
+          />
         ))}
       </div>
     </div>

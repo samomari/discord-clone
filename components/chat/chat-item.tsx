@@ -1,15 +1,13 @@
 'use client';
 
 import * as z from "zod";
-import axios from "axios";
-import qs from "query-string";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectMember, SelectProfile } from "@/db/schema";
 import { UserAvatar } from "@/components/user-avatar";
 import { ActionTooltip } from "@/components/action-tooltip";
 import { Edit, FileIcon, ShieldAlert, ShieldCheck, Trash } from "lucide-react";
-import { MemberRole } from "@/types";
+import { MemberRole, MessageWithMemberWithProfile } from "@/types";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 import { useRouter, useParams } from "next/navigation";
 import { useSocket } from "@/components/providers/socket-provider";
+import { useChatStore } from "@/hooks/use-chat-store";
 
 interface ChatItemProps {
   id: string;
@@ -69,6 +68,8 @@ export const ChatItem = ({
   const params = useParams();
   const router = useRouter();
   const { socket, isConnected } = useSocket();
+  const message = { id , content, timestamp, deleted, fileUrl, fileType, isUpdated};
+  const updateMessage = useChatStore((state) => state.updateMessage);
 
   const onMemberClick = () => {
     if (member.id === currentMember.id) {
@@ -77,20 +78,6 @@ export const ChatItem = ({
 
     router.push(`/servers/${params?.id}/conversations/${member.id}`);
   }
-
-  useEffect(() => {
-    const handleKeyDown = (event: any) => {
-      if (event.key === "Escape" || event.keyCode === 27) {
-        setIsEditing(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,6 +99,21 @@ export const ChatItem = ({
       try{
         const messageId = id;
         const { serverId, channelId, profileId } = query;
+
+        const updatedMessage: MessageWithMemberWithProfile = {
+          messages: {
+            ...message,
+            content: values.content,
+            updatedAt: new Date(),
+            createdAt: new Date(timestamp),
+            memberId: member.id,
+            channelId: query.channelId,
+          },
+          members: member,
+          profiles: profile,
+        };
+        
+        updateMessage(updatedMessage);
 
         socket.emit('updateMessage', {
           content: values.content,

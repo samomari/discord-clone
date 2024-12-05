@@ -9,11 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import qs from "query-string";
 import { useModal } from "@/hooks/use-modal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import axios from "axios";
 import { useSocket } from "@/components/providers/socket-provider";
 
 
@@ -33,7 +31,6 @@ export const DeleteMessageModal = () => {
         setIsLoading(true);
         const messageId = apiUrl.split("/").pop();
         const { serverId, channelId, profileId } = query;
-        console.log("msg id: ",messageId);
         
         socket.emit('deleteMessage', { 
           messageId, 
