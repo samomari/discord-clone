@@ -26,6 +26,8 @@ export type NextApiResponseServerIO = NextApiResponse & {
   };
 };
 
-export type MessageWithMemberWithProfile = SelectMessage & {
-  member : SelectMember & { profile: SelectProfile }
-}
+export type MessageWithMemberWithProfile = {
+  messages: SelectMessage;
+  members: SelectMember;
+  profiles: SelectProfile;
+};

@@ -52,6 +52,24 @@ async function fetchMessageData (messageId, channelId) {
   return result?.[0] || null;
 }
 
+async function fetchFullMessage (messageId, channelId) {
+  const result = await db
+    .select()
+    .from(message)
+    .leftJoin(member, eq(message.memberId, member.id))
+    .leftJoin(profile, eq(member.profileId, profile.id))
+    .where(
+      and(
+        eq(message.id, messageId), 
+        eq(message.channelId, channelId)
+      )
+    )
+    .limit(1)
+    .execute();
+  
+    return result?.[0] || null;
+}
+
 function canModifyMessage(memberData) {
   if (!memberData) return false;
   const isAdmin = memberData.role === MemberRole.ADMIN;
@@ -101,7 +119,7 @@ export async function handleUpdateMessage(data) {
       .where(eq(message.id, messageId))
       .execute();
 
-    const updatedMessage = await fetchMessageData(messageId, channelId);
+    const updatedMessage = await fetchFullMessage(messageId, channelId);
 
     return updatedMessage;
   } catch (error) {
@@ -142,7 +160,7 @@ export async function handleDeleteMessage(data) {
       .where(eq(message.id, messageId))
       .execute();
 
-    const updatedMessage = await fetchMessageData(messageId, channelId);
+    const updatedMessage = await fetchFullMessage(messageId, channelId);
 
     return updatedMessage;
   } catch (error) {
@@ -177,16 +195,9 @@ export async function handleCreateMessage(data) {
       .returning()
       .execute();
 
-    const fullMessage = await db
-      .select()
-      .from(message)
-      .leftJoin(member, eq(message.memberId, member.id))
-      .leftJoin(profile, eq(member.profileId, profile.id))
-      .where(eq(message.id, insertedMessage[0].id))
-      .limit(1)
-      .execute();
+    const fullMessage = await fetchFullMessage(insertedMessage[0].id, channelId);
 
-    return fullMessage[0];
+    return fullMessage;
   } catch (error) {
     console.log("[MESSAGES_POST]", error);
     return { error: error.message };

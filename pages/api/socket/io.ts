@@ -38,7 +38,7 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
           if (!result) {
             throw new Error("Message deletion failed");
           }
-          io.emit(`chat:${data.channelId}:messages`, result);
+          io.emit(`chat:${data.channelId}:messages:delete`, result);
         } catch (error) {
           console.error("Error deleting message: ", error);
         }
