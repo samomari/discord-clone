@@ -73,7 +73,6 @@ export default async function Page ({
       <ChatInput 
         name={channelData[0].name}
         type="channel"
-        apiUrl="/api/socket/messages"
         query={{
           channelId: channelId,
           serverId: id,

@@ -1,11 +1,8 @@
 "use client";
 
-import axios from "axios";
-import qs from "query-string";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
 import {
   Dialog, 
   DialogContent,
@@ -24,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
+import { useSocket } from "../providers/socket-provider";
 
 const formSchema = z.object({
   fileUpload: z.object({
@@ -35,9 +33,10 @@ const formSchema = z.object({
 export const MessageFileModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
+  const { socket, isConnected } = useSocket();
 
   const isModalOpen = isOpen && type === "messageFile";
-  const { apiUrl, query } = data;
+  const { query } = data;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -57,23 +56,25 @@ export const MessageFileModal = () => {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const url = qs.stringifyUrl({
-        url: apiUrl || "",
-        query,
-      })
+    if (socket && isConnected) {
+      try {
+        const { serverId, channelId, profileId } = query;
 
-      await axios.post(url, {
-        content: values.fileUpload.url,
-        fileUrl: values.fileUpload.url,
-        fileType: values.fileUpload.type
-      });
+        socket.emit('createMessage', {
+          content: values.fileUpload.url,
+          fileUrl: values.fileUpload.url,
+          fileType: values.fileUpload.type,
+          serverId,
+          channelId, 
+          profileId 
+        });
 
-      form.reset();
-      router.refresh();
-      handleClose();
-    } catch (error) {
-      console.log(error);
+        form.reset();
+        router.refresh();
+        handleClose();
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 
