@@ -4,11 +4,12 @@ import { SelectMember } from "@/db/schema";
 import { ChatWelcome } from "./chat-welcome";
 import { useChatQuery } from "@/hooks/use-chat-query";
 import { Loader2, ServerCrash } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, ElementRef } from "react";
 import { ChatItem } from "./chat-item";
 import { format } from "date-fns";
 import { useChatStore } from "@/hooks/use-chat-store";
 import { useSocket } from "../providers/socket-provider";
+import { useChatScroll } from "@/hooks/use-chat-scroll";
 
 const DATE_FORMAT = "d MMM yyyy, HH:mm";
 
@@ -38,6 +39,9 @@ export const ChatMessages = ({
   const queryKey = `chat:${chatId}`;
   const deleteKey = `chat:${chatId}:messages:delete`;
 
+  const chatRef = useRef<ElementRef<"div">>(null);
+  const bottomRef = useRef<ElementRef<"div">>(null);
+
   const {
     data,
     fetchNextPage,
@@ -55,6 +59,13 @@ export const ChatMessages = ({
   const messages = useChatStore((state) => state.messages);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const { socket, isConnected } = useSocket();
+  useChatScroll({
+    chatRef,
+    bottomRef,
+    loadMore: fetchNextPage,
+    hasMore: !isFetchingNextPage && !!hasNextPage,
+    count: messages?.length ?? 0,
+  });
 
   useEffect(() => {
     if (socket && isConnected) {
@@ -101,12 +112,27 @@ export const ChatMessages = ({
   }
   
   return (
-    <div className="flex-1 flex flex-col py-4 overflow-y-auto">
-      <div className="flex-1"/>
-      <ChatWelcome
-        type={type}
-        name={name}
-      />
+    <div ref={chatRef} className="flex-1 flex flex-col py-4 overflow-y-auto">
+      {!hasNextPage &&<div className="flex-1"/>}
+      {!hasNextPage && (
+        <ChatWelcome
+          type={type}
+          name={name}
+        />
+      )}
+      {hasNextPage && (
+        <div className="flex justify-center">
+          {isFetchingNextPage ? (
+            <Loader2 className="h-6 w-6 text-zinc-500 animate-spin my-4"/>
+          ) : (
+            <button
+              onClick={() => fetchNextPage()}
+              className="text-zinc-500 hover-text-zinc-600 dark:text-zinc-400 text-xs my-4 dark:hover:text-zinc-300 transition">
+              Load Previous Messages
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex flex-col-reverse mt-auto">
         {messages.map((message) => (
           <ChatItem
@@ -126,6 +152,7 @@ export const ChatMessages = ({
           />
         ))}
       </div>
+      <div ref={bottomRef}/>
     </div>
   )
 }
