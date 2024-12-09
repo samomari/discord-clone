@@ -95,14 +95,16 @@ export const ChatItem = ({
     if (socket && isConnected) {
       try{
         const messageId = id;
-        const { serverId, channelId, profileId } = query;
+        const { serverId, channelId, profileId, type, conversationId } = query;
 
         socket.emit('updateMessage', {
           content: values.content,
           messageId, 
           serverId, 
           channelId, 
-          profileId 
+          profileId,
+          conversationId,
+          type,
         });
 
         form.reset();

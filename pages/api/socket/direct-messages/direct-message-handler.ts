@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
-import { member, profile, directMessage} from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { member, profile, directMessage } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 async function fetchFullMessage (directMessageId, conversationId) {
   const result = await db
@@ -22,6 +22,60 @@ async function fetchFullMessage (directMessageId, conversationId) {
     .execute();
   
     return result?.[0] || null;
+}
+
+export async function handleDeleteConversationMessage(data) {
+  try {
+    const { messageId, conversationId } = data;
+
+    if (!conversationId) throw new Error("Conversation ID missing");
+    if (!messageId) throw new Error("Message ID missing");
+
+    await db
+      .update(directMessage)
+      .set({
+        fileUrl: null,
+        fileType: null,
+        content: "This message has been deleted.",
+        deleted: true,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(directMessage.id, messageId))
+      .execute();
+
+    const fullMessage = await fetchFullMessage(messageId, conversationId);
+
+    return fullMessage;
+  } catch (error) {
+    console.log("[DIRECT_MESSAGES_DELETE]", error);
+    return { error: error.message };
+  }
+}
+
+export async function handleUpdateConversationMessage(data) {
+  try {
+    const { content, conversationId, messageId} = data;
+
+    if (!conversationId) throw new Error("Conversation ID missing");
+    if (!content) throw new Error("Content missing");
+    if (!messageId) throw new Error("Message ID missing");
+
+    await db
+      .update(directMessage)
+      .set({ 
+        content,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+      .where(eq(directMessage.id, messageId))
+      .execute();
+
+    const fullMessage = await fetchFullMessage(messageId, conversationId);
+
+    return fullMessage;
+  } catch (error) {
+    console.log("[DIRECT_MESSAGES_UPDATE]", error);
+    return { error: error.message };
+  }
 }
 
 export async function handleCreateConversationMessage(data) {

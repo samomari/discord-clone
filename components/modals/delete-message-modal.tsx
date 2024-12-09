@@ -30,13 +30,15 @@ export const DeleteMessageModal = () => {
       try {
         setIsLoading(true);
         const messageId = apiUrl.split("/").pop();
-        const { serverId, channelId, profileId } = query;
+        const { serverId, channelId, profileId, conversationId, type } = query;
         
         socket.emit('deleteMessage', { 
           messageId, 
           serverId, 
           channelId, 
-          profileId 
+          profileId,
+          conversationId,
+          type
         });
 
         onClose();

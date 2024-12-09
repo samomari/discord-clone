@@ -69,6 +69,7 @@ export default async function Page ({
         socketUrl="api/socket/direct-messages"
         query={{
           conversationId: conversation.id,
+          type: "conversation"
         }}
       />
       <ChatInput 

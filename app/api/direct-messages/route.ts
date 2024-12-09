@@ -1,7 +1,7 @@
 import { currentProfile } from "@/lib/current-profile";
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
-import { directMessage, member, message, profile, SelectDirectMessage, SelectMessage } from "@/db/schema";
+import { directMessage, member, profile } from "@/db/schema";
 import { eq, and, desc, lt } from "drizzle-orm";
 import { DirectMessageWithMemberWithProfile } from "@/types";
 

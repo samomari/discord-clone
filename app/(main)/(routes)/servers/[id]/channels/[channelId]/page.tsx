@@ -65,7 +65,8 @@ export default async function Page ({
           channelId: channelId,
           serverId: id,
           profileId: profile.id,
-          memberId: memberData[0].id
+          memberId: memberData[0].id,
+          type: "channel"
         }}
         paramKey="channelId"
         paramValue={channelData[0].id}
