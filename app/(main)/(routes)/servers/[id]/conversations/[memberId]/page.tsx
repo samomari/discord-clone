@@ -5,6 +5,8 @@ import { currentProfile } from "@/lib/current-profile";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { ChatHeader } from "@/components/chat/chat-header";
+import { ChatMessages } from "@/components/chat/chat-messages";
+import { ChatInput } from "@/components/chat/chat-input";
 
 interface MemberIdPageProps {
   params: {
@@ -55,6 +57,27 @@ export default async function Page ({
         name={otherMember.profile.name}
         serverId={id}
         type="conversation"
+      />
+      <ChatMessages 
+        member={currentMember}
+        name={otherMember.profile.name}
+        chatId={conversation.id}
+        type="conversation"
+        apiUrl="/api/direct-messages"
+        paramKey={"conversationId"}
+        paramValue={conversation.id}
+        socketUrl="api/socket/direct-messages"
+        query={{
+          conversationId: conversation.id,
+        }}
+      />
+      <ChatInput 
+        name={otherMember.profile.name}
+        type="conversation"
+        query={{
+          conversationId: conversation.id,
+          profileId: curProfile.id
+        }}
       />
     </div>
   )

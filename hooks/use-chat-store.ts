@@ -17,7 +17,7 @@ export const useChatStore = create<ChatState>((set) => ({
   updateMessage: (updatedMessage) => set((state) => ({
     messages: state.messages.map((message) =>
       message.messages.id === updatedMessage.messages.id
-        ? { ...message, ...updatedMessage } // Update the message with new content and updatedAt
+        ? { ...message, ...updatedMessage } 
         : message
     ),
   })),

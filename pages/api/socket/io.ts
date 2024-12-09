@@ -3,6 +3,7 @@ import { NextApiRequest } from "next";
 import { Server as ServerIO } from "socket.io";
 import { NextApiResponseServerIO } from "@/types";
 import { handleCreateMessage, handleDeleteMessage, handleUpdateMessage } from "./messages/message-handler";
+import { handleCreateConversationMessage } from "./direct-messages/direct-message-handler";
 
 export default function handler (req: NextApiRequest, res: NextApiResponseServerIO) {
   if (!res.socket.server.io) {
@@ -21,14 +22,27 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
       console.log('A user connected: ', socket.id);
 
       socket.on('createMessage', async (data) => {
-        try {
-          const result = await handleCreateMessage(data);
-          if (!result) {
-            throw new Error("Message creation failed");
+        if ( data.type === 'channel') {
+          try {
+            const result = await handleCreateMessage(data);
+            if (!result) {
+              throw new Error("Message creation failed");
+            }
+            io.emit(`chat:${data.channelId}:messages`, result);
+          } catch (error) {
+            console.error("Error creating message: ", error);
           }
-          io.emit(`chat:${data.channelId}:messages`, result);
-        } catch (error) {
-          console.error("Error creating message: ", error);
+        }
+        if ( data.type === 'conversation') {
+          try {
+            const result = await handleCreateConversationMessage(data);
+            if (!result) {
+              throw new Error ("Message creation failed");
+            }
+            io.emit(`chat:${data.conversationId}:messages`, result);
+          } catch (error) {
+            console.error("Error creating conversation message");
+          }
         }
       });
 

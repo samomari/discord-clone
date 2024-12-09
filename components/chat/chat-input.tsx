@@ -50,14 +50,25 @@ export const ChatInput = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (socket && isConnected) {
       try {
-        const { serverId, channelId, profileId } = query;
+        const { serverId, channelId, profileId, conversationId } = query;
 
+        if (type === "channel"){
         socket.emit('createMessage', {
           content: values.content,
           serverId,
           channelId, 
-          profileId 
+          profileId,
+          type,
         });
+      }
+      if (type === "conversation") {
+        socket.emit('createMessage', {
+          content: values.content,
+          profileId,
+          conversationId,
+          type
+        })
+      }
 
         form.reset();
         router.refresh();
@@ -71,7 +82,8 @@ export const ChatInput = ({
 
   useEffect(() => {
     if (socket && isConnected) {
-      socket.on(`chat:${query.channelId}:messages`, (messageData) => {
+      const event = type === "channel" ? `chat:${query.channelId}:messages` : `chat:${query.conversationId}:messages`;
+      socket.on(event, (messageData) => {
         if (messageData && messageData.messages) {
           const newMessage = {
             messages: messageData.messages,  
@@ -80,13 +92,13 @@ export const ChatInput = ({
           };
           addMessage(newMessage);
         }
-      }, [socket, isConnected, query.channelId, addMessage]);
+      });
 
       return () => {
-        socket.off(`chat:${query.channelId}:messages`);
+        socket.off(event);
       };
     }
-  })
+  }, [socket, isConnected, query.channelId, query.conversationId, type, addMessage])
 
   return (
     <Form {...form}>
