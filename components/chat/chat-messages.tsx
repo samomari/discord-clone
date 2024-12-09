@@ -38,6 +38,7 @@ export const ChatMessages = ({
 }: ChatMessagesProps) => {
   const queryKey = `chat:${chatId}`;
   const deleteKey = `chat:${chatId}:messages:delete`;
+  const updateKey = `chat:${chatId}:messages:update`;
 
   const chatRef = useRef<ElementRef<"div">>(null);
   const bottomRef = useRef<ElementRef<"div">>(null);
@@ -69,17 +70,18 @@ export const ChatMessages = ({
 
   useEffect(() => {
     if (socket && isConnected) {
-      const handleDelete = (deletedMessage) => {
-        updateMessage(deletedMessage);
-      };
+      const handleUpdate = (updatedMessage) => updateMessage(updatedMessage);
+      const handleDelete = (deletedMessage) => updateMessage(deletedMessage);
 
+      socket.on(updateKey, handleUpdate);
       socket.on(deleteKey, handleDelete);
 
       return () => {
+        socket.off(updateKey, handleUpdate);
         socket.off(deleteKey, handleDelete);
       };
     }
-  }, [socket, isConnected, updateMessage, deleteKey]);
+  }, [socket, isConnected, updateMessage, updateKey, deleteKey]);
 
   useEffect(() => {
     if (data && data.pages) {
