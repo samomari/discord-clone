@@ -162,7 +162,7 @@ export async function handleUpdateConversationMessage(data) {
 
 export async function handleCreateConversationMessage(data) {
   try {
-    const { content, profileId, conversationId} = data;
+    const { content, profileId, conversationId, fileType, fileUrl} = data;
 
     validateInputs({ profileId, conversationId });
     
@@ -179,6 +179,8 @@ export async function handleCreateConversationMessage(data) {
       .values({
         content,
         conversationId,
+        fileUrl,
+        fileType,
         memberId: memberData.id,
       })
       .returning()

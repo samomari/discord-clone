@@ -78,6 +78,7 @@ export default async function Page ({
           channelId: channelId,
           serverId: id,
           profileId: profile.id,
+          type: "channel"
         }}
       />
     </div>

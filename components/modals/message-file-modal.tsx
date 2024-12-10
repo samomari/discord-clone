@@ -58,7 +58,7 @@ export const MessageFileModal = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (socket && isConnected) {
       try {
-        const { serverId, channelId, profileId } = query;
+        const { serverId, channelId, profileId, conversationId, type } = query;
 
         socket.emit('createMessage', {
           content: values.fileUpload.url,
@@ -66,7 +66,9 @@ export const MessageFileModal = () => {
           fileType: values.fileUpload.type,
           serverId,
           channelId, 
-          profileId 
+          profileId,
+          conversationId,
+          type
         });
 
         form.reset();

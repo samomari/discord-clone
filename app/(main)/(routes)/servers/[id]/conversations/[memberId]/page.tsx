@@ -78,7 +78,8 @@ export default async function Page ({
         type="conversation"
         query={{
           conversationId: conversation.id,
-          profileId: curProfile.id
+          profileId: curProfile.id,
+          type: "conversation"
         }}
       />
     </div>
