@@ -1,6 +1,26 @@
 import { db } from "@/db/db";
-import { member, profile, directMessage } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { member, profile, directMessage, conversation } from "@/db/schema";
+import { MemberRole } from "@/types";
+import { eq, and, sql, or } from "drizzle-orm";
+
+async function fetchConversationData (conversationId, memberData) {
+  const result = await db
+    .select()
+    .from(conversation)
+    .where(
+      and(
+        eq(conversation.id, conversationId),
+        or(
+          eq(conversation.memberOneId, memberData.id),
+          eq(conversation.memberTwoId, memberData.id)
+        )
+      )
+    )
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
 
 async function fetchFullMessage (directMessageId, conversationId) {
   const result = await db
@@ -24,12 +44,61 @@ async function fetchFullMessage (directMessageId, conversationId) {
     return result?.[0] || null;
 }
 
+async function fetchMessageData (messageId, conversationId) {
+  const result = await db
+    .select()
+    .from(directMessage)
+    .where(
+      and(
+        eq(directMessage.id, messageId), 
+        eq(directMessage.conversationId, conversationId)
+      )
+    )
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
+
+async function fetchMemberData (profileId) {
+  const result = await db
+    .select()
+    .from(member)
+    .where(eq(member.profileId, profileId))
+    .limit(1)
+    .execute();
+
+  return result?.[0] || null;
+}
+
+function isMessageOwner(memberData, messageData) {
+  if (!memberData || !messageData) return false;
+  return messageData.memberId === memberData.id;
+}
+
+function validateInputs({ profileId, conversationId }) {
+  if (!profileId) throw new Error("Unauthorized: Missing profileId");
+  if (!conversationId) throw new Error("Conversation ID missing");
+}
+
 export async function handleDeleteConversationMessage(data) {
   try {
-    const { messageId, conversationId } = data;
+    const { messageId, conversationId, profileId } = data;
 
-    if (!conversationId) throw new Error("Conversation ID missing");
-    if (!messageId) throw new Error("Message ID missing");
+    validateInputs({ profileId, conversationId });
+
+    const messageData = await fetchMessageData(messageId, conversationId);
+    if (!messageData) throw new Error("Message not found or already deleted");
+
+    const memberData = await fetchMemberData(profileId);
+    if (!memberData) throw new Error("Member not found");
+
+    const conversationData = await fetchConversationData(conversationId, memberData);
+    if (!conversationData) throw new Error("Conversation not found");
+
+    if (!isMessageOwner(memberData, messageData)) {
+      throw new Error("Only message owner can perform this action.");
+    }
 
     await db
       .update(directMessage)
@@ -54,11 +123,24 @@ export async function handleDeleteConversationMessage(data) {
 
 export async function handleUpdateConversationMessage(data) {
   try {
-    const { content, conversationId, messageId} = data;
+    const { content, conversationId, messageId, profileId} = data;
 
-    if (!conversationId) throw new Error("Conversation ID missing");
+    validateInputs({ profileId, conversationId });
+
     if (!content) throw new Error("Content missing");
-    if (!messageId) throw new Error("Message ID missing");
+
+    const messageData = await fetchMessageData(messageId, conversationId);
+    if (!messageData) throw new Error("Message not found or already deleted");
+
+    const memberData = await fetchMemberData(profileId);
+    if (!memberData) throw new Error("Member not found");
+
+    const conversationData = await fetchConversationData(conversationId, memberData);
+    if (!conversationData) throw new Error("Conversation not found");
+
+    if (!isMessageOwner(memberData, messageData)) {
+      throw new Error("Only message owner can update message.");
+    }
 
     await db
       .update(directMessage)
@@ -82,23 +164,22 @@ export async function handleCreateConversationMessage(data) {
   try {
     const { content, profileId, conversationId} = data;
 
-    if (!profileId) throw new Error("Unauthorized: Missing profileId");
-    if (!conversationId) throw new Error("Conversation ID missing");
+    validateInputs({ profileId, conversationId });
+    
     if (!content) throw new Error("Content missing");
     
-    const memberData = await db
-      .select()
-      .from(member)
-      .where(eq(member.profileId, profileId))
-      .limit(1)
-      .execute();
+    const memberData = await fetchMemberData(profileId);
+    if (!memberData) throw new Error("Member not found");
+
+    const conversationData = await fetchConversationData(conversationId, memberData);
+    if (!conversationData) throw new Error("Conversation not found");
     
     const insertedMessage = await db
       .insert(directMessage)
       .values({
         content,
         conversationId,
-        memberId: memberData[0].id,
+        memberId: memberData.id,
       })
       .returning()
       .execute();

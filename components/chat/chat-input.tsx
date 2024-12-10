@@ -52,23 +52,14 @@ export const ChatInput = ({
       try {
         const { serverId, channelId, profileId, conversationId } = query;
 
-        if (type === "channel"){
         socket.emit('createMessage', {
           content: values.content,
           serverId,
           channelId, 
           profileId,
+          conversationId,
           type,
         });
-      }
-      if (type === "conversation") {
-        socket.emit('createMessage', {
-          content: values.content,
-          profileId,
-          conversationId,
-          type
-        })
-      }
 
         form.reset();
         router.refresh();

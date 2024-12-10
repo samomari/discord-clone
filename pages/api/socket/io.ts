@@ -22,84 +22,15 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
       console.log('A user connected: ', socket.id);
 
       socket.on('createMessage', async (data) => {
-        const { type, channelId, conversationId } = data;
-        const id = type === 'channel' ? channelId : conversationId;
-        
-        if (!id) {
-          throw new Error("Channel or conversation ID missing");
-        }
-
-        try {
-          let result;
-
-          if (type === 'channel'){
-            result = await handleCreateMessage(data);
-          } else if (type === 'conversation') {
-            result = await handleCreateConversationMessage(data);
-          } else {
-            throw new Error("Invalid message type");
-          }
-          if (!result) {
-            throw new Error("Message creation failed");
-          }
-          io.emit(`chat:${id}:messages`, result);
-        } catch (error) {
-          console.error("Error creating conversation message");
-        }
+        await handleMessageAction('create', data, io)
       });
 
       socket.on('deleteMessage', async (data) => {
-        const { type, channelId, conversationId } = data;
-        const id = type === 'channel' ? channelId : conversationId;
-
-        if (!id) {
-          throw new Error("Channel or conversation ID missing");
-        }
-
-        try {
-          let result;
-
-          if (type === 'channel'){
-            result = await handleDeleteMessage(data);
-          } else if (type === 'conversation') {
-            result = await handleDeleteConversationMessage(data);
-          } else {
-            throw new Error("Invalid message type");
-          }
-          if (!result) {
-            throw new Error("Message deletion failed");
-          }
-          io.emit(`chat:${id}:messages:delete`, result);
-        } catch (error) {
-          console.error("Error deleting message: ", error);
-        }
+        await handleMessageAction('delete', data, io)
       });
 
       socket.on('updateMessage', async (data) => {
-        const { type, channelId, conversationId } = data;
-        const id = type === 'channel' ? channelId : conversationId;
-
-        if (!id) {
-          throw new Error("Channel or conversation ID missing");
-        }
-
-        try {
-          let result;
-
-          if (type === 'channel'){
-            result = await handleUpdateMessage(data);
-          } else if (type === 'conversation') {
-            result = await handleUpdateConversationMessage(data);
-          } else {
-            throw new Error("Invalid message type");
-          }
-          if (!result) {
-            throw new Error("Message update failed");
-          }
-          io.emit(`chat:${id}:messages:update`, result); 
-        } catch (error) {
-          console.error("Error updating message: ", error);
-        }
+        await handleMessageAction('update', data, io)
       });
 
       socket.on('disconnect', () => {
@@ -113,4 +44,44 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
   }
 
   res.end();
-}
+};
+
+const actionHandlers = {
+  channel: {
+    create: handleCreateMessage,
+    delete: handleDeleteMessage,
+    update: handleUpdateMessage,
+  },
+  conversation: {
+    create: handleCreateConversationMessage,
+    delete: handleDeleteConversationMessage,
+    update: handleUpdateConversationMessage,
+  },
+};
+
+async function handleMessageAction(action: string, data: any, io: ServerIO) {
+  const { type, channelId, conversationId } = data;
+  const id = type === 'channel' ? channelId : conversationId;
+
+  if (!id) {
+    throw new Error("Channel or conversation ID missing");
+  }
+
+  try {
+    const actionHandler = actionHandlers[type]?.[action];
+    if (!actionHandler) {
+      throw new Error(`Invalid action '${action}' for type '${type}'`);
+    }
+
+    const result = await actionHandler(data);
+
+    if (!result) {
+      throw new Error("Message action failed");
+    }
+
+    const event = action === 'create' ? `chat:${id}:messages` : `chat:${id}:messages:${action}`;
+    io.emit(event, result);
+  } catch (error) {
+    console.error(`Error ${action} message: `, error);
+  }
+};
