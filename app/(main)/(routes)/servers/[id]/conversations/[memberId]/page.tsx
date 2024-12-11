@@ -7,16 +7,21 @@ import { eq, and } from "drizzle-orm";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChatInput } from "@/components/chat/chat-input";
+import { MediaRoom } from "@/components/media-room";
 
 interface MemberIdPageProps {
   params: {
     id: string;
     memberId: string;
-  }  
+  },
+  searchParams: {
+    video?: boolean;
+  }
 }
 
 export default async function Page ({
-  params
+  params,
+  searchParams,
 }: MemberIdPageProps) {
   const { id } = await params;
   const { memberId } = await params;
@@ -58,30 +63,41 @@ export default async function Page ({
         serverId={id}
         type="conversation"
       />
-      <ChatMessages 
-        member={currentMember}
-        name={otherMember.profile.name}
-        chatId={conversation.id}
-        type="conversation"
-        apiUrl="/api/direct-messages"
-        paramKey={"conversationId"}
-        paramValue={conversation.id}
-        socketUrl="api/socket/direct-messages"
-        query={{
-          conversationId: conversation.id,
-          type: "conversation", 
-          profileId: curProfile.id
-        }}
-      />
-      <ChatInput 
-        name={otherMember.profile.name}
-        type="conversation"
-        query={{
-          conversationId: conversation.id,
-          profileId: curProfile.id,
-          type: "conversation"
-        }}
-      />
+      {searchParams.video && (
+        <MediaRoom 
+          chatId={conversation.id}
+          video={true}
+          audio={true}
+        />
+      )}
+      {!searchParams.video && (
+        <>
+          <ChatMessages 
+            member={currentMember}
+            name={otherMember.profile.name}
+            chatId={conversation.id}
+            type="conversation"
+            apiUrl="/api/direct-messages"
+            paramKey={"conversationId"}
+            paramValue={conversation.id}
+            socketUrl="api/socket/direct-messages"
+            query={{
+              conversationId: conversation.id,
+              type: "conversation", 
+              profileId: curProfile.id
+            }}
+          />
+          <ChatInput 
+            name={otherMember.profile.name}
+            type="conversation"
+            query={{
+              conversationId: conversation.id,
+              profileId: curProfile.id,
+              type: "conversation"
+            }}
+          />
+       </>
+      )}
     </div>
   )
 }
