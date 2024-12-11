@@ -24,6 +24,7 @@ export default async function Page ({
   searchParams,
 }: MemberIdPageProps) {
   const { id } = await params;
+  const { video } = await searchParams;
   const { memberId } = await params;
   const curProfile = await currentProfile();
 
@@ -63,14 +64,14 @@ export default async function Page ({
         serverId={id}
         type="conversation"
       />
-      {searchParams.video && (
+      {video && (
         <MediaRoom 
           chatId={conversation.id}
           video={true}
           audio={true}
         />
       )}
-      {!searchParams.video && (
+      {!video && (
         <>
           <ChatMessages 
             member={currentMember}
