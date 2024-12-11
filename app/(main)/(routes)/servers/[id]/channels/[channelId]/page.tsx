@@ -6,6 +6,8 @@ import { channel, member } from "@/db/schema";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
+import { ChannelType } from "@/types";
+import { MediaRoom } from "@/components/media-room";
 
 interface ChannelIdPageProps {
   params: {
@@ -54,33 +56,44 @@ export default async function Page ({
         serverId={channelData[0].serverId}
         type="channel"
       />
-      <ChatMessages 
-        member={memberData[0]}
-        name={channelData[0].name}
-        chatId={channelData[0].id}
-        type="channel"
-        apiUrl="/api/messages"
-        socketUrl="/api/socket/messages"
-        query={{
-          channelId: channelId,
-          serverId: id,
-          profileId: profile.id,
-          memberId: memberData[0].id,
-          type: "channel"
-        }}
-        paramKey="channelId"
-        paramValue={channelData[0].id}
-      />
-      <ChatInput 
-        name={channelData[0].name}
-        type="channel"
-        query={{
-          channelId: channelId,
-          serverId: id,
-          profileId: profile.id,
-          type: "channel"
-        }}
-      />
+      {channelData[0].type === ChannelType.TEXT && (
+        <>
+          <ChatMessages 
+            member={memberData[0]}
+            name={channelData[0].name}
+            chatId={channelData[0].id}
+            type="channel"
+            apiUrl="/api/messages"
+            socketUrl="/api/socket/messages"
+            query={{
+              channelId: channelId,
+              serverId: id,
+              profileId: profile.id,
+              memberId: memberData[0].id,
+              type: "channel"
+            }}
+            paramKey="channelId"
+            paramValue={channelData[0].id}
+          />
+          <ChatInput 
+            name={channelData[0].name}
+            type="channel"
+            query={{
+              channelId: channelId,
+              serverId: id,
+              profileId: profile.id,
+              type: "channel"
+            }}
+          />
+        </>
+      )}
+      {channelData[0].type === ChannelType.VOICE && (
+        <MediaRoom
+          chatId={channelData[0].id}
+          video={true}
+          audio={true}
+        />
+      )}
     </div>
   )
 }
