@@ -26,6 +26,7 @@ import { useModal } from "@/hooks/use-modal-store";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSocket } from "../providers/socket-provider";
 
 const formSchema = z.object({
   name: z.string().min(1, "Server name is required"),
@@ -54,6 +55,8 @@ export const EditServerModal = () => {
     },
   });
 
+  const { socket, isConnected } = useSocket();
+  
   useEffect(() => {
     if (server) {
       form.setValue("name", server.name);
@@ -68,10 +71,14 @@ export const EditServerModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.patch(`/api/servers/${server?.id}`, {
+      const response = await axios.patch(`/api/servers/${server?.id}`, {
         name: values.name,
         imageUrl: values.imageUrl.url,
       });
+
+      if (socket && isConnected) {
+        socket.emit("serverUpdate", response.data);
+      }
 
       form.reset();
       router.refresh();

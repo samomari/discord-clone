@@ -25,6 +25,7 @@ import { FileUpload } from "../file-upload";
 import { useModal } from "@/hooks/use-modal-store";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useSocket } from "../providers/socket-provider";
 
 const formSchema = z.object({
   name: z.string().min(1, "Server name is required"),
@@ -39,6 +40,7 @@ export const CreateServerModal = () => {
 
   const router = useRouter();
   
+  const { socket, isConnected } = useSocket();
   const isModalOpen = isOpen && type === "createServer";
 
   const form = useForm({
@@ -56,10 +58,14 @@ export const CreateServerModal = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.post("/api/servers", {
+      const response = await axios.post("/api/servers", {
         name: values.name,
         imageUrl: values.imageUrl.url,
       });
+
+      if (socket && isConnected) {
+        socket.emit("serverCreate", response.data); 
+      }
 
       form.reset();
       router.refresh();

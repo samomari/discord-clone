@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useSocket } from "../providers/socket-provider";
 
 
 export const LeaveServerModal = () => {
@@ -23,6 +24,7 @@ export const LeaveServerModal = () => {
   const isModalOpen = isOpen && type === "leaveServer";
   const { server } = data;
 
+  const { socket, isConnected } = useSocket();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
@@ -30,6 +32,10 @@ export const LeaveServerModal = () => {
       setIsLoading(true);
 
       await axios.patch(`/api/servers/${server?.id}/leave`);
+
+      if (socket && isConnected) {
+        socket.emit("serverDelete", server?.id,);
+      }
 
       onClose();
       router.refresh();

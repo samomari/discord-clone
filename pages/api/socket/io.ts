@@ -33,6 +33,18 @@ export default function handler (req: NextApiRequest, res: NextApiResponseServer
         await handleMessageAction('update', data, io)
       });
 
+      socket.on('serverDelete', (serverId) => {
+        io.emit('serverDelete', serverId);
+      });
+
+      socket.on('serverUpdate', (updatedServer) => {
+        io.emit('serverUpdate', updatedServer);
+      });
+
+      socket.on('serverCreate', (newServer) => {
+        io.emit('serverCreate', newServer);
+      })
+
       socket.on('disconnect', () => {
         console.log('A user disconnected: ', socket.id);
       });
