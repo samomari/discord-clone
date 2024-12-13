@@ -3,7 +3,7 @@
 import { ChannelType, MemberRole, ServerWithMembersWithProfiles } from "@/types";
 import { ActionTooltip } from "@/components/action-tooltip";
 import { Plus, Settings } from "lucide-react";
-import { useModal } from "@/hooks/use-modal-store";
+import { useModal } from "@/hooks/zustand/use-modal-store";
 
 interface ServerSectionProps {
   label: string;

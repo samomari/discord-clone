@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 
 import qs from "query-string";
-import { useModal } from "@/hooks/use-modal-store";
+import { useModal } from "@/hooks/zustand/use-modal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import axios from "axios";

@@ -2,7 +2,7 @@
 
 import qs from "query-string";
 import { useState } from "react";
-import { useModal } from "@/hooks/use-modal-store";
+import { useModal } from "@/hooks/zustand/use-modal-store";
 import { MemberRole } from "@/types";
 import { ServerWithMembersWithProfiles } from "@/types";
 import {

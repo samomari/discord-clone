@@ -6,7 +6,7 @@ import { ChannelType, MemberRole } from "@/types";
 import { Edit, Hash, Mic, Trash, Lock } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ActionTooltip } from "@/components/action-tooltip";
-import { ModalType, useModal } from "@/hooks/use-modal-store";
+import { ModalType, useModal } from "@/hooks/zustand/use-modal-store";
 
 interface ServerChannelProps {
  channel: SelectChannel;

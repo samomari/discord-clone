@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationItem } from "./navigation-item";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
-import { useServersStore } from "@/hooks/use-server-store";
+import { useServersStore } from "@/hooks/zustand/use-server-store";
 import { useEffect } from "react";
 import { useSocket } from "../providers/socket-provider";
 

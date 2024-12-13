@@ -2,14 +2,14 @@
 
 import { SelectMember } from "@/db/schema";
 import { ChatWelcome } from "./chat-welcome";
-import { useChatQuery } from "@/hooks/use-chat-query";
+import { useChatQuery } from "@/hooks/api/use-chat-query";
 import { Loader2, ServerCrash } from "lucide-react";
 import { useEffect, useRef, ElementRef } from "react";
 import { ChatItem } from "./chat-item";
 import { format } from "date-fns";
-import { useChatStore } from "@/hooks/use-chat-store";
+import { useChatStore } from "@/hooks/zustand/use-chat-store";
 import { useSocket } from "../providers/socket-provider";
-import { useChatScroll } from "@/hooks/use-chat-scroll";
+import { useChatScroll } from "@/hooks/utils/use-chat-scroll";
 
 const DATE_FORMAT = "d MMM yyyy, HH:mm";
 

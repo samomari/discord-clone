@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { useModal } from "@/hooks/use-modal-store";
+import { useModal } from "@/hooks/zustand/use-modal-store";
 import { EmojiPicker } from "@/components/emoji-picker";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/components/providers/socket-provider";
 import { useEffect } from "react";
-import { useChatStore } from "@/hooks/use-chat-store";
+import { useChatStore } from "@/hooks/zustand/use-chat-store";
 
 interface ChatInputProps {
   query: Record<string, any>;

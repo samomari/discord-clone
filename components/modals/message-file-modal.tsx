@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { useRouter } from "next/navigation";
-import { useModal } from "@/hooks/use-modal-store";
+import { useModal } from "@/hooks/zustand/use-modal-store";
 import { useSocket } from "../providers/socket-provider";
 
 const formSchema = z.object({
