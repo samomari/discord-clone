@@ -36,4 +36,8 @@ export type DirectMessageWithMemberWithProfile = {
   messages: SelectDirectMessage;
   members: SelectMember;
   profiles: SelectProfile;
+};
+
+export type MemberWithProfile = SelectMember & {
+  profile: SelectProfile;
 }
