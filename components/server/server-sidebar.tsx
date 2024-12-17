@@ -1,10 +1,12 @@
+'use client';
+
 import { currentProfile } from "@/lib/current-profile";
 import { redirect } from "next/navigation";
 import { db } from "@/db/db";
-import { server, member, channel, profile } from "@/db/schema";
+import { server, member, channel, profile, SelectProfile, SelectChannel } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { ServerHeader } from "./server-header";
-import { ChannelType, ServerWithMembersWithProfiles } from "@/types";
+import { ChannelType, MemberRole, MemberWithProfile, ServerWithMembersWithProfiles } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ServerSearch } from "./server-search";
 import { Hash, Mic, ShieldAlert, ShieldCheck } from "lucide-react";
@@ -12,9 +14,15 @@ import { Separator } from "@/components/ui/separator";
 import { ServerSection } from "./server-section";
 import { ServerChannel } from "./server-channel";
 import { ServerMember } from "./server-member";
+import { useCurrentProfile } from "@/hooks/zustand/use-current-profile";
+import { useEffect } from "react";
+import { useServerDetailStore } from "@/hooks/zustand/use-server-detail-store";
+import { useMembersStore } from "@/hooks/zustand/use-members-store";
+import { useChannelsStore } from "@/hooks/zustand/use-channels-store";
 
 interface ServerSidebarProps {
   serverId: string;
+  currentProfile: SelectProfile;
 }
 
 const iconMap = {
@@ -28,78 +36,56 @@ const roleIconMap = {
   "ADMIN": <ShieldAlert className="h-4 w-4 mr-2 text-rose-500"/>
 };
 
-export const ServerSidebar = async ({
-  serverId
+export const ServerSidebar = ({
+  serverId, 
+  currentProfile
 }: ServerSidebarProps) => {
-  const curProfile = await currentProfile();
+  const setProfile = useCurrentProfile((state) => state.setProfile);
+  setProfile(currentProfile);
 
-  if (!curProfile) {
-    return redirect("/");
-  }
+  const { setServer, server } = useServerDetailStore();
+  const { setMembers, members } = useMembersStore();
+  const { setChannels, channels } =  useChannelsStore();
 
-  const serverData = await db
-    .select()
-    .from(server)
-    .leftJoin(member, eq(member.serverId, server.id))
-    .leftJoin(profile, eq(profile.id, member.profileId))
-    .leftJoin(channel, eq(channel.serverId, server.id))
-    .where(eq(server.id, serverId))
-    .execute();
+  useEffect(() => {
+    const fetchServerData = async () => {
+      try {
+        const res = await fetch(`/api/servers/${serverId}`);
+        if (res.ok) {
+          const data: {
+            server: ServerWithMembersWithProfiles;
+            channels: SelectChannel[];
+            members: MemberWithProfile[];
+          } = await res.json();
 
-  if (!serverData || serverData.length === 0) {
-    return redirect("/");
-  }
-
-  const serverItem = serverData[0];
-
-  const membersMap = new Map();
-  const channelsMap = new Map();
-  serverData.forEach((item) => {
-    if (item.members?.id) {
-      membersMap.set(item.members.id, {
-        id: item.members.id,
-        serverId: item.members.serverId,
-        profileId: item.members.profileId,
-        role: item.members.role,
-        profile: item.profiles,
-      });
+          setServer(data.server);
+          setChannels(data.channels);
+          setMembers(data.members);
+          
+        } else {
+          console.error("Failed to fetch servers");
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
-    if (item.channels?.id && !channelsMap.has(item.channels.id)) {
-      channelsMap.set(item.channels.id, item.channels);
-    }
-  });
+    fetchServerData();
+  }, [serverId, setServer, setChannels, setMembers ]);
 
-  const membersArray = Array.from(membersMap.values());
-  const channelsArray = Array.from(channelsMap.values());
-
-  const textChannels = channelsArray.filter(
+  const textChannels = channels.filter(
     (channel) => channel.type === ChannelType.TEXT);
-  
-  const voiceChannels = channelsArray.filter(
+
+  const voiceChannels = channels.filter(
     (channel) => channel.type === ChannelType.VOICE);
-
-  const filteredMembers = membersArray.filter(
-    (member) => member.profileId !== curProfile.id);
-
-  const role = membersArray.find(
-    (member) => member.profileId === curProfile.id)?.role;
-
-  const reshapedServerItem: ServerWithMembersWithProfiles = {
-    id: serverItem.servers.id,
-    name: serverItem.servers.name,
-    imageUrl: serverItem.servers.imageUrl,
-    createdAt: serverItem.servers.createdAt,
-    updatedAt: serverItem.servers.updatedAt,
-    inviteCode: serverItem.servers.inviteCode,
-    profileId: serverItem.servers.profileId,
-    members: membersArray,
-  };
+  
+  const role = members.find(
+    (member) => member.profileId === currentProfile.id)?.role as MemberRole;
 
   return (
     <div className="flex flex-col h-full text-primary w-full 
     dark:bg-[#2B2D31] bg-[#F2F3F5]">
       <ServerHeader
-        server={reshapedServerItem}
+        server={server}
         role={role}
       />
       <ScrollArea className="flex-1 px-3">
@@ -127,7 +113,7 @@ export const ServerSidebar = async ({
               {
                 label: "Members",
                 type: "member",
-                data: filteredMembers?.map((member) => ({
+                data: members?.map((member) => ({
                   id: member.id,
                   name: member.profile.name,
                   icon: roleIconMap[member.role],
@@ -151,7 +137,7 @@ export const ServerSidebar = async ({
                   key={channel.id}
                   channel={channel}
                   role={role}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>
@@ -171,27 +157,27 @@ export const ServerSidebar = async ({
                   key={channel.id}
                   channel={channel}
                   role={role}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>
           </div>
         )}
         {/* MEMBERS */}
-        {!!filteredMembers?.length && (
+        {!!members?.length && (
           <div className="mb-2">
             <ServerSection 
               sectionType="members"
               role={role}
               label="Members"
-              server={reshapedServerItem}
+              server={server}
             />
             <div className="space-y-[2px]">
-              {filteredMembers.map((member) => (
+              {members.map((member) => (
                 <ServerMember 
                   key={member.id}
                   member={member}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>

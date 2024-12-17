@@ -29,7 +29,9 @@ export function NavigationSidebar () {
       }
     };
 
-    fetchServers();
+    if (servers.length === 0) {
+      fetchServers();
+    }
   }, [setServers]);
 
   useEffect(() => {

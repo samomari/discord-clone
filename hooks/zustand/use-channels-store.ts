@@ -2,34 +2,24 @@ import { create } from 'zustand';
 import { SelectChannel } from '@/db/schema';
 
 interface ChannelsStore {
-  textChannels: SelectChannel[];
-  voiceChannels: SelectChannel[];
-  setTextChannels: (channels: SelectChannel[]) => void;
-  setVoiceChannels: (channels: SelectChannel[]) => void;
-  addTextChannel: (channel: SelectChannel) => void;
-  addVoiceChannel: (channel: SelectChannel) => void;
+  channels: SelectChannel[];
+  setChannels: (channels: SelectChannel[]) => void;
+  addChannel: (channel: SelectChannel) => void;
   removeChannel: (channelId: string) => void; 
   updateChannel: (updatedChannel: SelectChannel) => void;
 };
 
 export const useChannelsStore = create<ChannelsStore>((set) => ({
-  textChannels: [],
-  voiceChannels: [],
-  setTextChannels: (channels) => set({ textChannels: channels }),
-  setVoiceChannels: (channels) => set({ voiceChannels: channels }),
-  addTextChannel: (channel) => set((state) => ({ textChannels: [...state.textChannels, channel] })),
-  addVoiceChannel: (channel) => set((state) => ({ voiceChannels: [...state.voiceChannels, channel] })),
+  channels: [],
+  setChannels: (channels) => set({ channels: channels }),
+  addChannel: (channel) => set((state) => ({ channels: [...state.channels, channel] })),
   removeChannel: (channelId) =>
     set((state) => ({
-      textChannels: state.textChannels.filter((channel) => channel.id !== channelId),
-      voiceChannels: state.voiceChannels.filter((channel) => channel.id !== channelId),
+      channels: state.channels.filter((channel) => channel.id !== channelId),
     })),
   updateChannel: (updatedChannel) =>
     set((state) => ({
-      textChannels: state.textChannels.map((channel) =>
-        channel.id === updatedChannel.id ? updatedChannel : channel
-      ),
-      voiceChannels: state.voiceChannels.map((channel) =>
+      channels: state.channels.map((channel) =>
         channel.id === updatedChannel.id ? updatedChannel : channel
       ),
     })),

@@ -138,12 +138,6 @@ export async function GET (
     const membersArray = Array.from(membersMap.values());
     const channelsArray = Array.from(channelsMap.values());
 
-    const textChannels = channelsArray.filter(
-      (channel) => channel.type === ChannelType.TEXT);
-
-    const voiceChannels = channelsArray.filter(
-      (channel) => channel.type === ChannelType.VOICE);
-
     const filteredMembers = membersArray.filter(
       (member) => member.profileId !== curProfile.id);
 
@@ -160,10 +154,7 @@ export async function GET (
 
     return NextResponse.json({
       server: reshapedServerItem,
-      channels: {
-      textChannels,
-        voiceChannels,
-      },
+      channels: channelsArray,
       members: filteredMembers,
     });
 
