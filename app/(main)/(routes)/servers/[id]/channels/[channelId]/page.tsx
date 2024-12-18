@@ -16,11 +16,20 @@ interface ChannelIdPageProps {
   }
 }
 
+function isValidUUID(id: string) {
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  return uuidRegex.test(id);
+}
+
 export default async function Page ({
   params
 }: ChannelIdPageProps) {
   const { id, channelId } = await params;
   const profile = await currentProfile();
+  
+  if (!isValidUUID(channelId)) {
+    return redirect("/");
+  }
 
   if (!profile) {
     return redirect('/sign-in');

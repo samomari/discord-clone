@@ -40,9 +40,8 @@ export const ServerSidebar = ({
   serverId, 
   currentProfile
 }: ServerSidebarProps) => {
-  const setProfile = useCurrentProfile((state) => state.setProfile);
   const [loading, setLoading] = useState(true);
-
+  const { setProfile } = useCurrentProfile();
   const { setServer, server } = useServerDetailStore();
   const { setMembers, members } = useMembersStore();
   const { setChannels, channels } =  useChannelsStore();
@@ -56,7 +55,7 @@ export const ServerSidebar = ({
   useEffect(() => {
     const fetchServerData = async () => {
       if (server?.id === serverId) {
-        setLoading(false); // Already loaded
+        setLoading(false);
         return;
       }
       try {
