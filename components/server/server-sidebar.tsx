@@ -15,7 +15,7 @@ import { ServerSection } from "./server-section";
 import { ServerChannel } from "./server-channel";
 import { ServerMember } from "./server-member";
 import { useCurrentProfile } from "@/hooks/zustand/use-current-profile";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useServerDetailStore } from "@/hooks/zustand/use-server-detail-store";
 import { useMembersStore } from "@/hooks/zustand/use-members-store";
 import { useChannelsStore } from "@/hooks/zustand/use-channels-store";
@@ -41,14 +41,24 @@ export const ServerSidebar = ({
   currentProfile
 }: ServerSidebarProps) => {
   const setProfile = useCurrentProfile((state) => state.setProfile);
-  setProfile(currentProfile);
+  const [loading, setLoading] = useState(true);
 
   const { setServer, server } = useServerDetailStore();
   const { setMembers, members } = useMembersStore();
   const { setChannels, channels } =  useChannelsStore();
 
   useEffect(() => {
+    if (currentProfile) {
+      setProfile(currentProfile);
+    }
+  }, [currentProfile, setProfile]);
+
+  useEffect(() => {
     const fetchServerData = async () => {
+      if (server?.id === serverId) {
+        setLoading(false); // Already loaded
+        return;
+      }
       try {
         const res = await fetch(`/api/servers/${serverId}`);
         if (res.ok) {
@@ -57,20 +67,20 @@ export const ServerSidebar = ({
             channels: SelectChannel[];
             members: MemberWithProfile[];
           } = await res.json();
-
+  
           setServer(data.server);
           setChannels(data.channels);
           setMembers(data.members);
-          
+          setLoading(false);
         } else {
-          console.error("Failed to fetch servers");
+          console.error("Failed to fetch server data");
         }
       } catch (error) {
         console.log(error);
       }
-    }
+    };
     fetchServerData();
-  }, [serverId, setServer, setChannels, setMembers ]);
+  }, [serverId, setServer, setChannels, setMembers]);
 
   const textChannels = channels.filter(
     (channel) => channel.type === ChannelType.TEXT);
@@ -81,6 +91,7 @@ export const ServerSidebar = ({
   const role = members.find(
     (member) => member.profileId === currentProfile.id)?.role as MemberRole;
 
+  if (loading) return <div>Loading...</div>;
   return (
     <div className="flex flex-col h-full text-primary w-full 
     dark:bg-[#2B2D31] bg-[#F2F3F5]">
