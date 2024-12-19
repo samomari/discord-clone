@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/db";
 import { member, server, profile, channel } from "@/db/schema";
 import { eq, and, or, sql } from "drizzle-orm";
-import { ChannelType, MemberRole, ServerWithMembersWithProfiles } from "@/types";
+import { MemberRole, ServerWithMembersWithProfiles } from "@/types";
 
 export async function DELETE (
   req: Request,

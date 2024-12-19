@@ -1,10 +1,6 @@
 'use client';
 
-import { currentProfile } from "@/lib/current-profile";
-import { redirect } from "next/navigation";
-import { db } from "@/db/db";
-import { server, member, channel, profile, SelectProfile, SelectChannel } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { SelectProfile, SelectChannel } from "@/db/schema";
 import { ServerHeader } from "./server-header";
 import { ChannelType, MemberRole, MemberWithProfile, ServerWithMembersWithProfiles } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
