@@ -1,8 +1,5 @@
-import { db } from "@/db/db";
-import { channel, member, server } from "@/db/schema";
 import { currentProfile } from "@/lib/current-profile";
 import { redirect } from "next/navigation";
-import { eq, and, asc } from "drizzle-orm";
 import { ensureServerMembership } from "@/features/servers/ensure-server-membership";
 import { ensureGeneralChannelExists } from "@/features/channels/ensure-general-channel-exists";
 

@@ -9,6 +9,11 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChannelType } from "@/types";
 import { MediaRoom } from "@/components/media-room";
 
+function isValidUUID(id: string) {
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  return uuidRegex.test(id);
+}
+
 interface ChannelIdPageProps {
   params: {
     id: string;
@@ -21,6 +26,10 @@ export default async function Page ({
 }: ChannelIdPageProps) {
   const { id, channelId } = await params;
   const profile = await currentProfile();
+
+  if (!isValidUUID(channelId)) {
+      return redirect("/");
+    }
 
   if (!profile) {
     return redirect('/sign-in');

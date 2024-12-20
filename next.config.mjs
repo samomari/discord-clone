@@ -16,6 +16,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/servers',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/servers/:serverId/channels',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
