@@ -1,9 +1,7 @@
 import { currentProfile } from "@/lib/current-profile";
 import { redirect } from "next/navigation";
-import { db } from "@/db/db";
-import {server, member } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
 import { ServerSidebar } from "@/components/server/server-sidebar";
+import { ensureServerMembership } from "@/features/servers/ensure-server-membership";
 
 function isValidUUID(id: string) {
   const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
@@ -25,21 +23,11 @@ export default async function Layout ({
 
   const profile = await currentProfile();
 
-  if(!profile){
-    return redirect('/sign-in'); 
-  }
-
-  const servers = await db
-    .select()
-    .from(server)
-    .innerJoin(member, eq(member.serverId, server.id))
-    .where(and(eq(server.id, id), eq(member.profileId, profile.id)));
+  if(!profile) return redirect('/sign-in'); 
+  
+  const serverData = await ensureServerMembership(id, profile.id);
     
-  if (!servers || servers.length === 0) {
-    return redirect("/");
-  }
-
-  const serverData = servers[0].servers;
+  if (!serverData) return redirect("/");
 
   return (
     <div className="h-full">
