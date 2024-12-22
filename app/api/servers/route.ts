@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { currentProfile } from "@/lib/current-profile";
 import { db } from "@/db/db";
 import { server, member, channel } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 
 
 export async function POST(req: Request) {
@@ -64,7 +64,8 @@ export async function GET() {
       .select()
       .from(server)
       .innerJoin(member, eq(member.serverId, server.id))
-      .where(eq(member.profileId, profile.id));
+      .where(eq(member.profileId, profile.id))
+      .orderBy(asc(server.createdAt));
 
     const simplifiedServers = servers.map((s) => s.servers);
 

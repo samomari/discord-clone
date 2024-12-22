@@ -8,6 +8,7 @@ import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChatInput } from "@/components/chat/chat-input";
 import { MediaRoom } from "@/components/media-room";
+import { getCurrentMember } from "@/features/members/get-current-member";
 
 interface MemberIdPageProps {
   params: {
@@ -32,15 +33,7 @@ export default async function Page ({
     return redirect('/sign-in');
   }
 
-  const currentMemberResult = await db
-    .select()
-    .from(member)
-    .leftJoin(profile, eq(profile.id, member.profileId))
-    .where(and(eq(member.serverId, id), eq(member.profileId, curProfile.id)))
-    .limit(1)
-    .execute();
-
-  const currentMember = currentMemberResult.length > 0 ? currentMemberResult[0].members : null;
+  const currentMember = await getCurrentMember(id, curProfile.id);
 
   if (!currentMember) {
     return redirect(`/`);
