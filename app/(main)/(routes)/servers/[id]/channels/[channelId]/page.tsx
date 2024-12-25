@@ -8,6 +8,8 @@ import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChannelType } from "@/types";
 import { MediaRoom } from "@/components/media-room";
+import { getChannelData } from "@/features/channels/get-channel-data";
+import { getCurrentMember } from "@/features/members/get-current-member";
 
 function isValidUUID(id: string) {
   const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
@@ -35,42 +37,27 @@ export default async function Page ({
     return redirect('/sign-in');
   }
 
-  const channelData = await db
-    .select()
-    .from(channel)
-    .where(eq(channel.id, channelId))
-    .limit(1)
-    .execute();
+  const channelData = await getChannelData(channelId);
 
-  const memberData = await db
-    .select()
-    .from(member)
-    .where(
-      and(
-        eq(member.serverId, id),
-        eq(member.profileId, profile.id)
-      )
-    )
-    .limit(1)
-    .execute();
+  const memberData = await getCurrentMember(id, profile.id);
 
-  if (!channelData ||channelData.length === 0 || !memberData || memberData.length === 0) {
+  if (!channelData || !memberData) {
     return redirect(`/`);
   }
 
   return (
     <div className="bg-white dark:bg-[#313338] flex flex-col h-full">
       <ChatHeader 
-        name={channelData[0].name}
-        serverId={channelData[0].serverId}
+        name={channelData.name}
+        serverId={channelData.serverId}
         type="channel"
       />
-      {channelData[0].type === ChannelType.TEXT && (
+      {channelData.type === ChannelType.TEXT && (
         <>
           <ChatMessages 
-            member={memberData[0]}
-            name={channelData[0].name}
-            chatId={channelData[0].id}
+            member={memberData}
+            name={channelData.name}
+            chatId={channelData.id}
             type="channel"
             apiUrl="/api/messages"
             socketUrl="/api/socket/messages"
@@ -78,14 +65,14 @@ export default async function Page ({
               channelId: channelId,
               serverId: id,
               profileId: profile.id,
-              memberId: memberData[0].id,
+              memberId: memberData.id,
               type: "channel"
             }}
             paramKey="channelId"
-            paramValue={channelData[0].id}
+            paramValue={channelData.id}
           />
           <ChatInput 
-            name={channelData[0].name}
+            name={channelData.name}
             type="channel"
             query={{
               channelId: channelId,
@@ -96,9 +83,9 @@ export default async function Page ({
           />
         </>
       )}
-      {channelData[0].type === ChannelType.VOICE && (
+      {channelData.type === ChannelType.VOICE && (
         <MediaRoom
-          chatId={channelData[0].id}
+          chatId={channelData.id}
           video={true}
           audio={true}
         />
