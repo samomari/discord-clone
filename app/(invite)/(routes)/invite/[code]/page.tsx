@@ -1,8 +1,8 @@
 import { currentProfile } from "@/lib/current-profile";
 import { redirect } from "next/navigation";
-import { db } from "@/db/db";
-import { server, member } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { getExistingMember } from "@/features/members/get-existing-member";
+import { getServerByInviteCode } from "@/features/servers/get-server-by-invite-code";
+import { createMember } from "@/features/members/create-member";
 
 interface InviteCodePageProps {
   params: {
@@ -24,40 +24,21 @@ const Page = async ({
     return redirect("/");
   }
 
-  const serverData = await db
-    .select()
-    .from(server)
-    .where(eq(server.inviteCode, code))
-    .limit(1)
-    .execute();
+  const serverData = await getServerByInviteCode(code);
 
-  if (!serverData || serverData.length === 0) {
+  if (!serverData) {
     return redirect("/"); 
   }
 
-  const serverId = serverData[0].id;
+  const serverId = serverData.id;
 
-  const existingServerMember = await db
-    .select()
-    .from(member)
-    .where(and(
-      eq(member.serverId, serverId),
-      eq(member.profileId, profile.id) // Ensures this profile is already a member
-    ))
-    .limit(1)
-    .execute();
+  const existingMember = await getExistingMember(serverId, profile.id);
 
-  if (existingServerMember && existingServerMember.length > 0) {
+  if (existingMember) {
     return redirect(`/servers/${serverId}`); 
   }
 
-  const newMember = await db
-    .insert(member)
-    .values({
-      profileId: profile.id,
-      serverId: serverId
-    })
-    .returning();
+  const newMember = await createMember(serverId, profile.id);
 
   if (newMember) {
     return redirect(`/servers/${serverId}`);
