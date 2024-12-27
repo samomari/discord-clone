@@ -60,15 +60,24 @@ async function fetchMessageData (messageId, conversationId) {
   return result?.[0] || null;
 }
 
-async function fetchMemberData (profileId) {
+async function fetchMemberData (profileId, conversationId) {
   const result = await db
     .select()
     .from(member)
-    .where(eq(member.profileId, profileId))
+    .innerJoin(conversation, or(
+      eq(member.id, conversation.memberOneId),
+      eq(member.id, conversation.memberTwoId)
+    ))
+    .where(
+      and(
+        eq(member.profileId, profileId),
+        eq(conversation.id, conversationId)
+      )
+    )
     .limit(1)
     .execute();
 
-  return result?.[0] || null;
+  return result?.[0].members || null;
 }
 
 function isMessageOwner(memberData, messageData) {
@@ -90,7 +99,7 @@ export async function handleDeleteConversationMessage(data) {
     const messageData = await fetchMessageData(messageId, conversationId);
     if (!messageData) throw new Error("Message not found or already deleted");
 
-    const memberData = await fetchMemberData(profileId);
+    const memberData = await fetchMemberData(profileId, conversationId);
     if (!memberData) throw new Error("Member not found");
 
     const conversationData = await fetchConversationData(conversationId, memberData);
@@ -132,7 +141,7 @@ export async function handleUpdateConversationMessage(data) {
     const messageData = await fetchMessageData(messageId, conversationId);
     if (!messageData) throw new Error("Message not found or already deleted");
 
-    const memberData = await fetchMemberData(profileId);
+    const memberData = await fetchMemberData(profileId, conversationId);
     if (!memberData) throw new Error("Member not found");
 
     const conversationData = await fetchConversationData(conversationId, memberData);
@@ -168,7 +177,7 @@ export async function handleCreateConversationMessage(data) {
     
     if (!content) throw new Error("Content missing");
     
-    const memberData = await fetchMemberData(profileId);
+    const memberData = await fetchMemberData(profileId, conversationId);
     if (!memberData) throw new Error("Member not found");
 
     const conversationData = await fetchConversationData(conversationId, memberData);
