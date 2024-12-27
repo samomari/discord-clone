@@ -4,21 +4,18 @@ import { redirect } from "next/navigation";
 import { server, member } from "@/db/schema";
 import { eq} from "drizzle-orm";
 import { InitialModal } from "@/components/modals/initial-modal";
+import { ensureServerMembership } from "@/features/servers/ensure-server-membership";
 
 const SetupPage = async () => {
   const profile = await initialProfile();
 
-  const existingServer = await db
-    .select()
-    .from(server)
-    .innerJoin(member, eq(member.serverId, server.id)) 
-    .where(eq(member.profileId, profile.id)) 
-    .limit(1) 
-    .execute(); 
+  const existingServer = await ensureServerMembership(null, profile.id);
 
-    if (existingServer.length > 0) { 
-      return redirect(`/servers/${existingServer[0].servers.id}`); 
-    }
+  console.log("existingServer", existingServer);
+
+  if (existingServer) {
+    return redirect(`/servers/${existingServer.servers.id}`);
+  }
 
   return (
     <div>
