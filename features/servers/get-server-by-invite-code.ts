@@ -11,11 +11,11 @@ export const getServerByInviteCode = async (inviteCode: string) => {
       .limit(1)
       .execute();
 
-      if (serverData.length === 0) {
-        return null;
-      }
+    if (serverData.length === 0) {
+      return null;
+    }
 
-      return serverData[0];
+    return serverData[0];
   } catch (error) {
     console.error('Error fetching server by invite code: ', error);
   }

@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ServerSection } from "./server-section";
 import { ServerChannel } from "./server-channel";
 import { ServerMember } from "./server-member";
+import { getServerInfo } from "@/features/servers/get-server-info";
 
 interface ServerSidebarProps {
   serverId: string;
@@ -37,69 +38,31 @@ export const ServerSidebar = async ({
     return redirect("/");
   }
 
-  const serverData = await db
-    .select()
-    .from(server)
-    .leftJoin(member, eq(member.serverId, server.id))
-    .leftJoin(profile, eq(profile.id, member.profileId))
-    .leftJoin(channel, eq(channel.serverId, server.id))
-    .where(eq(server.id, serverId))
-    .execute();
+  const serverInfo = await getServerInfo(serverId);
 
-  if (!serverData || serverData.length === 0) {
+  if (!serverInfo) {
     return redirect("/");
   }
 
-  const serverItem = serverData[0];
+  const { server, channels, members } = serverInfo;
 
-  const membersMap = new Map();
-  const channelsMap = new Map();
-  serverData.forEach((item) => {
-    if (item.members?.id) {
-      membersMap.set(item.members.id, {
-        id: item.members.id,
-        serverId: item.members.serverId,
-        profileId: item.members.profileId,
-        role: item.members.role,
-        profile: item.profiles,
-      });
-    }
-    if (item.channels?.id && !channelsMap.has(item.channels.id)) {
-      channelsMap.set(item.channels.id, item.channels);
-    }
-  });
-
-  const membersArray = Array.from(membersMap.values());
-  const channelsArray = Array.from(channelsMap.values());
-
-  const textChannels = channelsArray.filter(
+  const textChannels = channels.filter(
     (channel) => channel.type === ChannelType.TEXT);
   
-  const voiceChannels = channelsArray.filter(
+  const voiceChannels = channels.filter(
     (channel) => channel.type === ChannelType.VOICE);
 
-  const filteredMembers = membersArray.filter(
+  const filteredMembers = members.filter(
     (member) => member.profileId !== curProfile.id);
 
-  const role = membersArray.find(
+  const role = members.find(
     (member) => member.profileId === curProfile.id)?.role;
-
-  const reshapedServerItem: ServerWithMembersWithProfiles = {
-    id: serverItem.servers.id,
-    name: serverItem.servers.name,
-    imageUrl: serverItem.servers.imageUrl,
-    createdAt: serverItem.servers.createdAt,
-    updatedAt: serverItem.servers.updatedAt,
-    inviteCode: serverItem.servers.inviteCode,
-    profileId: serverItem.servers.profileId,
-    members: membersArray,
-  };
 
   return (
     <div className="flex flex-col h-full text-primary w-full 
     dark:bg-[#2B2D31] bg-[#F2F3F5]">
       <ServerHeader
-        server={reshapedServerItem}
+        server={server}
         role={role}
       />
       <ScrollArea className="flex-1 px-3">
@@ -151,7 +114,7 @@ export const ServerSidebar = async ({
                   key={channel.id}
                   channel={channel}
                   role={role}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>
@@ -171,7 +134,7 @@ export const ServerSidebar = async ({
                   key={channel.id}
                   channel={channel}
                   role={role}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>
@@ -184,14 +147,14 @@ export const ServerSidebar = async ({
               sectionType="members"
               role={role}
               label="Members"
-              server={reshapedServerItem}
+              server={server}
             />
             <div className="space-y-[2px]">
               {filteredMembers.map((member) => (
                 <ServerMember 
                   key={member.id}
                   member={member}
-                  server={reshapedServerItem}
+                  server={server}
                 />
               ))}
             </div>
