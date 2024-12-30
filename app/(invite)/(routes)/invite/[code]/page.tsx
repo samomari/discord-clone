@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
 import { getExistingMember } from "@/features/members/get-existing-member";
 import { getServerByInviteCode } from "@/features/servers/get-server-by-invite-code";

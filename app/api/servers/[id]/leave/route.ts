@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 import { member, server } from "@/db/schema";
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { eq, ne, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 

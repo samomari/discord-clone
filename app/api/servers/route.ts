@@ -1,6 +1,6 @@
 import { v4 as uuidv4} from "uuid";
 import { NextResponse } from "next/server";
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { db } from "@/db/db";
 import { server, member, channel } from '@/db/schema';
 import { eq, asc } from 'drizzle-orm';

@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { NextResponse } from "next/server";
 import { MemberRoleEnum } from "@/db/schema";
 import { member, channel, server } from "@/db/schema";

@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
 import { ensureServerMembership } from "@/features/servers/ensure-server-membership";
 import { ensureGeneralChannelExists } from "@/features/channels/ensure-general-channel-exists";

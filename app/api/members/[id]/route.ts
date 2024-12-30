@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { NextResponse } from "next/server";
 import { db } from "@/db/db";
 import { member, server, profile } from "@/db/schema";

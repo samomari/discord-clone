@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { NextResponse } from "next/server";
 import { server } from "@/db/schema";
 import { v4 as uuidv4 } from "uuid";

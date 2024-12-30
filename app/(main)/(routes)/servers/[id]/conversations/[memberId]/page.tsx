@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { member, profile } from "@/db/schema";
-import { getOrCreateConversation } from "@/lib/conversation";
-import { currentProfile } from "@/lib/current-profile";
+import { getOrCreateConversation } from "@/features/conversations/conversation";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { ChatHeader } from "@/components/chat/chat-header";

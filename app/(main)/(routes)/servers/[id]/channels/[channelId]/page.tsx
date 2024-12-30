@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/current-profile";
+import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
 import { db } from "@/db/db";
 import { and, eq } from "drizzle-orm";
