@@ -6,9 +6,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
 import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
-import { member, server } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
-import { db } from "@/db/db";
+import { getServers } from "@/features/servers/get-servers";
 
 export async function NavigationSidebar () {
   const profile = await currentProfile();
@@ -17,14 +15,7 @@ export async function NavigationSidebar () {
     return redirect("/");
   }
 
-  const servers = await db
-    .select()
-    .from(server)
-    .innerJoin(member, eq(member.serverId, server.id))
-    .where(eq(member.profileId, profile.id))
-    .orderBy(asc(server.createdAt));
-
-  const simplifiedServers = servers.map(s => s.servers);
+  const servers = await getServers(profile.id);
 
   return (
     <div
@@ -37,17 +28,19 @@ export async function NavigationSidebar () {
         rounded-md w-10 mx-auto"
       />
       <ScrollArea className="flex-1 w-full">
-    
-        {simplifiedServers.map((server) => (
-          <div key={server.id} className="mb-4">
-            <NavigationItem 
-             id={server.id} 
-             name={server.name} 
-             imageUrl={server.imageUrl}
-            />
-          </div>
-        ))}
-
+        {servers && servers.length > 0 ? (
+            servers.map((server) => (
+              <div key={server.id} className="mb-4">
+                <NavigationItem 
+                id={server.id} 
+                name={server.name} 
+                imageUrl={server.imageUrl}
+                />
+              </div>
+            ))
+          ) : (
+            <div>No servers found</div>
+          )}
       </ScrollArea>
       <div className="pb-3 mt-auto flex items-center flex-col gap-y-4">
         <ModeToggle />
