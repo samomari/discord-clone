@@ -1,8 +1,5 @@
 import { currentProfile } from "@/features/profiles/current-profile";
 import { redirect } from "next/navigation";
-import { db } from "@/db/db";
-import { server, member, channel, profile } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
 import { ServerHeader } from "./server-header";
 import { ChannelType, ServerWithMembersWithProfiles } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";

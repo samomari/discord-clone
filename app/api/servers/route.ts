@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { currentProfile } from "@/features/profiles/current-profile";
 import { db } from "@/db/db";
 import { server, member, channel } from '@/db/schema';
-import { eq, asc } from 'drizzle-orm';
-
 
 export async function POST(req: Request) {
   try {
@@ -47,31 +45,6 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.log("SERVERS_POST", error);
-    return new NextResponse("Internal Error", { status: 500 });
-  }
-}
-
-
-export async function GET() {
-  try {
-    const profile = await currentProfile();
-
-    if (!profile) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    const servers = await db
-      .select()
-      .from(server)
-      .innerJoin(member, eq(member.serverId, server.id))
-      .where(eq(member.profileId, profile.id))
-      .orderBy(asc(server.createdAt));
-
-    const simplifiedServers = servers.map((s) => s.servers);
-
-    return NextResponse.json(simplifiedServers);
-  } catch (error) {
-    console.error("SERVERS_GET", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

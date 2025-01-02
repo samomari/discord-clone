@@ -14,8 +14,6 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useSocket } from "../providers/socket-provider";
-
 
 export const DeleteServerModal = () => {
   const { isOpen, onClose, type, data } = useModal();
@@ -24,7 +22,6 @@ export const DeleteServerModal = () => {
   const isModalOpen = isOpen && type === "deleteServer";
   const { server } = data;
 
-  const { socket, isConnected } = useSocket();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
@@ -32,10 +29,6 @@ export const DeleteServerModal = () => {
       setIsLoading(true);
 
       await axios.delete(`/api/servers/${server?.id}`);
-
-      if (socket && isConnected) {
-        socket.emit("serverDelete", server?.id,);
-      }
       
       onClose();
       router.refresh();

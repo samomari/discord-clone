@@ -1,59 +1,30 @@
-'use client';
-
 import { Separator } from "@/components/ui/separator";
 import { NavigationAction } from "./navigation-action";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationItem } from "./navigation-item";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "@clerk/nextjs";
-import { useServersStore } from "@/hooks/zustand/use-server-store";
-import { useEffect } from "react";
-import { useSocket } from "../providers/socket-provider";
+import { currentProfile } from "@/features/profiles/current-profile";
+import { redirect } from "next/navigation";
+import { member, server } from "@/db/schema";
+import { eq, asc } from "drizzle-orm";
+import { db } from "@/db/db";
 
-export function NavigationSidebar () {
-  const { servers, setServers, addServer, removeServer, updateServer } = useServersStore();
-  const { socket, isConnected } = useSocket();
+export async function NavigationSidebar () {
+  const profile = await currentProfile();
 
-  useEffect(() => {
-    const fetchServers = async () => {
-      try {
-        const res = await fetch("/api/servers");
-        if (res.ok) {
-          const data = await res.json();
-          setServers(data);
-        } else {
-          console.error("Failed to fetch servers");
-        }
-      } catch (error) {
-        console.error("Error fetching servers:", error);
-      }
-    };
+  if (!profile) {
+    return redirect("/");
+  }
 
-    fetchServers();
-  }, [setServers]);
+  const servers = await db
+    .select()
+    .from(server)
+    .innerJoin(member, eq(member.serverId, server.id))
+    .where(eq(member.profileId, profile.id))
+    .orderBy(asc(server.createdAt));
 
-  useEffect(() => {
-    if (socket && isConnected) {
-
-      socket.on("serverDelete", (serverId: string) => {
-        removeServer(serverId);
-      });
-
-      socket.on("serverUpdate", (updatedServer: any) => {
-        updateServer(updatedServer);
-      });
-
-      socket.on("serverCreate", (newServer: any) => {
-        addServer(newServer);
-      });
-
-      return () => {
-        socket.off("serverDelete");
-        socket.off("serverUpdate");
-        socket.off("serverCreate");
-      };
-    }
-  }, [socket, isConnected, addServer, removeServer, updateServer]);
+  const simplifiedServers = servers.map(s => s.servers);
 
   return (
     <div
@@ -67,7 +38,7 @@ export function NavigationSidebar () {
       />
       <ScrollArea className="flex-1 w-full">
     
-        {servers.map((server) => (
+        {simplifiedServers.map((server) => (
           <div key={server.id} className="mb-4">
             <NavigationItem 
              id={server.id} 
