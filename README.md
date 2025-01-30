@@ -28,7 +28,6 @@ This project replicates the core features of Discord, including real-time messag
 
 ### Backend
 - Express
-- Hono
 - Socket.io
 - Drizzle ORM
 - Zustand
